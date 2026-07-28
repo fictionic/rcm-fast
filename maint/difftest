@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# difftest -- compare this working tree against unmodified upstream rcm.
+#
+# The cram suite checks that rcm still satisfies its own expectations, which
+# both this fork and upstream do. It cannot check the property this fork
+# actually promises: that the output is byte-for-byte what upstream produces.
+# That needs two builds compared over real dotfiles.
+#
+# Usage: maint/difftest [upstream-ref]     (default: upstream/main)
+#
+# Reads the invoking user's real ~/.rcrc and dotfiles. Only lsrc is run, so
+# nothing is written outside a temporary directory. rcup is deliberately not
+# exercised here: it installs into DEST_DIR, which rcm.sh seeds from $HOME
+# before sourcing .rcrc, and there is no flag to redirect it.
+
+set -e
+
+LC_ALL=C
+export LC_ALL
+
+ref_name="${1:-upstream/main}"
+root="$(git rev-parse --show-toplevel)"
+
+if [ ! -x "$root/bin/lsrc" ]; then
+  echo "difftest: $root/bin/lsrc not built; run ./configure first" >&2
+  exit 2
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+echo "reference: $ref_name"
+echo "candidate: $root"
+echo
+
+mkdir "$tmp/ref"
+git -C "$root" archive "$ref_name" | tar -x -C "$tmp/ref"
+
+# configure writes the four commands mode 644. Only "make install" and
+# test/helper.sh set the executable bit, and this builds neither.
+(
+  cd "$tmp/ref"
+  ./autogen.sh || true
+  ./configure
+  chmod +x bin/lsrc bin/mkrc bin/rcup bin/rcdn
+) >"$tmp/build.log" 2>&1 || {
+  echo "difftest: reference build failed" >&2
+  cat "$tmp/build.log" >&2
+  exit 2
+}
+
+status=0
+
+for flags in '' '-F' '-v' '-vv'; do
+  RCM_LIB="$tmp/ref/share" "$tmp/ref/bin/lsrc" $flags >"$tmp/out.ref" 2>&1 || true
+  RCM_LIB="$root/share" "$root/bin/lsrc" $flags >"$tmp/out.new" 2>&1 || true
+
+  if cmp -s "$tmp/out.ref" "$tmp/out.new"; then
+    echo "ok    lsrc $flags  ($(wc -l <"$tmp/out.ref") lines)"
+  else
+    echo "FAIL  lsrc $flags"
+    diff -u "$tmp/out.ref" "$tmp/out.new" || true
+    status=1
+  fi
+done
+
+echo
+if [ $status -eq 0 ]; then
+  echo "identical to $ref_name"
+else
+  echo "DIVERGES from $ref_name"
+fi
+exit $status
