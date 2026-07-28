@@ -117,12 +117,15 @@ show_file() {
     output="$output:$sigil"
   fi
 
-  if echo "$DEST_STACK:" | grep -v ":$dest_file:" >/dev/null; then
-    DEST_STACK="$DEST_STACK:$dest_file"
-    $PRINT "$output"
-  else
-    $VERBOSE "skipping hidden file $output"
-  fi
+  case "$DEST_STACK:" in
+    *":$dest_file:"*)
+      $VERBOSE "skipping hidden file $output"
+      ;;
+    *)
+      DEST_STACK="$DEST_STACK:$dest_file"
+      $PRINT "$output"
+      ;;
+  esac
 }
 
 handle_file() {
