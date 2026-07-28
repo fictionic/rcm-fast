@@ -10,9 +10,8 @@ pushdir() {
 }
 
 popdir() {
-  current="$(echo "$DIR_STACK" | sed -e 's/.*://g')"
-  prior="$(echo "$DIR_STACK" | sed -e "s|:$current$||" | sed -e 's/.*://g')"
-  DIR_STACK="$(echo "$DIR_STACK" | sed -e 's/:[^:]*$//')"
+  DIR_STACK="${DIR_STACK%:*}"
+  prior="${DIR_STACK##*:}"
   $DEBUG "cd'ing to $prior from $PWD with stack $DIR_STACK"
   cd -- "$prior"
 }
