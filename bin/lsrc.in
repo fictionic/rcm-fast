@@ -155,10 +155,10 @@ handle_file() {
 }
 
 is_metafile() {
-  host_portion="$(echo "$1" | sed -e 's/host-.*/host-/')"
-  tag_portion="$(echo "$1" | sed -e 's/tag-.*/tag-/')"
-
-  [ "x$host_portion" = 'xhost-' -o "x$tag_portion" = 'xtag-' -o "x$1" = "xhooks" ]
+  case "$1" in
+    host-*|tag-*|hooks) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 dotfiles_dir_excludes() {
