@@ -192,7 +192,7 @@ is_excluded() {
   local file="$1"
   local exclude_file_globs="$2"
   local include_file_globs="$3"
-  local base_file="$(basename "$file")"
+  local base_file="${file##*/}"
 
   $DEBUG "is_excluded $file $exclude_file_globs $include_file_globs"
 
