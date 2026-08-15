@@ -8,3 +8,4 @@ Symlinks files even if they are identical
 
   $ rcup
   > assert_linked "$HOME/.door" "$HOME/.dotfiles/door"
+  '*/.dotfiles/door' -> '*/.door' (glob)

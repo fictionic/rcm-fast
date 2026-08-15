@@ -25,4 +25,6 @@ Ensure that hooks run when output of lsrc is non-empty
   $ touch .dotfiles/testrc
   > rcup
   > rcdn
+  '*/.dotfiles/test-hooks-run-in-situ-5b811e03-5977-40e6-80ef-dd6c35013e56' -> '*/.test-hooks-run-in-situ-5b811e03-5977-40e6-80ef-dd6c35013e56' (glob)
+  '*/.dotfiles/testrc' -> '*/.testrc' (glob)
   ../../test-hooks-run-in-situ-5b811e03-5977-40e6-80ef-dd6c35013e56

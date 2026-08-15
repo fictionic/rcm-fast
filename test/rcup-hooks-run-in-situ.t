@@ -19,9 +19,11 @@ be the directory where they are situated. We test this by trying to find $uniqui
   > echo "cat /tmp/test-$uuid; rm /tmp/test-$uuid" > .dotfiles/hooks/post-up/00-test.sh
 
   $ rcup
+  '*/.dotfiles/test-hooks-run-in-situ-820a557b-1acb-4e86-8c5b-feb2536b5777' -> '*/.test-hooks-run-in-situ-820a557b-1acb-4e86-8c5b-feb2536b5777' (glob)
   ../../test-hooks-run-in-situ-820a557b-1acb-4e86-8c5b-feb2536b5777
 
 Ensure that hooks run when output of lsrc is non-empty
   $ touch .dotfiles/testrc
   > rcup
+  '*/.dotfiles/testrc' -> '*/.testrc' (glob)
   ../../test-hooks-run-in-situ-820a557b-1acb-4e86-8c5b-feb2536b5777

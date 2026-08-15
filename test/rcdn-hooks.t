@@ -16,4 +16,5 @@ Ensure that hooks run when output of lsrc is non-empty
   $ touch .dotfiles/testrc
   > rcup
   > rcdn
+  '*/.dotfiles/testrc' -> '*/.testrc' (glob)
   example

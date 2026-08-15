@@ -15,4 +15,5 @@ rcrc should run hooks with ~ instead of $HOME
   > printf "#!/bin/sh\necho 'ran'\n" > ~/.other-dotfiles/hooks/post-up
   > chmod +x ~/.other-dotfiles/hooks/post-up
   > RCRC=./alt-rcrc rcup
+  '*/.other-dotfiles/o-example' -> '*/.o-example' (glob)
   ran

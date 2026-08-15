@@ -18,7 +18,7 @@ if [ -z "$LOGNAME" ]; then
 fi
 
 ln_v() {
-  $VERBOSE "'$1' -> '$2'"
+  $PRINT "'$1' -> '$2'"
   ln -s "$1" "$2"
 }
 

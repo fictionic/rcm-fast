@@ -32,6 +32,7 @@ Ensure that hooks run when output of lsrc is non-empty
   1
   2
   3
+  '*/.dotfiles/testrc' -> '*/.testrc' (glob)
   4
   5
   6

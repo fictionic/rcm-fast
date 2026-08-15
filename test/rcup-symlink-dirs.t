@@ -8,4 +8,5 @@ Overrides SYMLINK_DIRS with -s
   $ echo 'SYMLINK_DIRS="eggplant_firetruck"' > $HOME/.rcrc
 
   $ rcup -s eggplant_firetruck
+  '*/.dotfiles/eggplant_firetruck/lampshade/bottle' -> '*/.eggplant_firetruck/lampshade/bottle' (glob)
   $ assert_linked "$HOME/.eggplant_firetruck/lampshade/bottle" "$HOME/.dotfiles/eggplant_firetruck/lampshade/bottle"

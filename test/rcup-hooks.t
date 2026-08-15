@@ -15,4 +15,5 @@ Pre-up and post-up hooks should run by default
 Ensure that hooks run when output of lsrc is non-empty
   $ touch .dotfiles/testrc
   $ /usr/bin/env -i PATH="$PATH" HOME="$HOME" RCRC="$RCRC" RCM_LIB="$RCM_LIB" rcup
+  '*/.dotfiles/testrc' -> '*/.testrc' (glob)
   example
