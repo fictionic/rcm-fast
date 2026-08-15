@@ -8,6 +8,8 @@ Setup
    - cram, for the test suite: `pip install cram`
    - pystache, to build `man/rcm.7` from its mustache template:
      `pip install pystache`
+   - hyperfine, only if you want to run `maint/benchmark`:
+     `pacman -S hyperfine` or `brew install hyperfine`
 2. Prepare the build system: `./autogen.sh`. (This depends on GNU autoconf
    and GNU automake.)
 3. Configure the package: `./configure`.

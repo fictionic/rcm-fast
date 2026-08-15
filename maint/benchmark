@@ -1,0 +1,160 @@
+#!/bin/sh
+#
+# benchmark -- time this working tree's lsrc against unmodified upstream rcm.
+#
+# The cram suite says nothing about speed and maint/difftest only says the
+# output is unchanged. The claim this fork actually makes -- that dropping a
+# fork/exec per dotfile is worth something -- needs both builds timed over the
+# same dotfiles, since the saving scales with how many entries there are.
+#
+# Usage: maint/benchmark [-n COUNT] [-r] [upstream-ref]
+#
+#   -n COUNT   entries in the generated corpus (default 200)
+#   -r         use the invoking user's real ~/.rcrc and dotfiles instead
+#
+# By default a corpus is generated in a temporary directory, so the number is
+# reproducible and comparable across machines. Vary -n to see the saving grow.
+# The generated tree mixes flat, nested, tagged and host-specific entries,
+# because those are the paths the removed forks were on; a flat directory of
+# N files would understate the difference.
+#
+# -r reads the invoking user's real configuration. Only lsrc is run either
+# way, so nothing is written outside a temporary directory.
+#
+# hyperfine is required rather than a timing loop: BSD date has no %N, and the
+# gap is small enough that warmup runs and outlier detection change the answer.
+#
+# Both trees are run with RCM_LIB set, which skips the dirname(1) call in the
+# lsrc preamble. That is one fork on each side, so the comparison stays fair.
+
+set -e
+
+LC_ALL=C
+export LC_ALL
+
+count=200
+real=0
+
+while getopts :n:r opt; do
+  case "$opt" in
+    n) count="$OPTARG" ;;
+    r) real=1 ;;
+    *) echo "Usage: benchmark [-n COUNT] [-r] [upstream-ref]" >&2; exit 64 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+ref_name="${1:-upstream/main}"
+root="$(git rev-parse --show-toplevel)"
+
+if ! command -v hyperfine >/dev/null; then
+  echo "benchmark: missing dependency: hyperfine" >&2
+  echo "  macOS: brew install hyperfine" >&2
+  echo "  Arch:  pacman -S hyperfine" >&2
+  exit 2
+fi
+
+if [ ! -f "$root/bin/lsrc" ]; then
+  echo "benchmark: $root/bin/lsrc not built; run ./configure first" >&2
+  exit 2
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+# A spread of flat, nested, tagged and host-specific entries. The proportions
+# are a guess at a typical dotfiles directory; what matters is that no single
+# code path dominates.
+generate_corpus() {
+  local home="$1" n="$2"
+  local dots="$1/.dotfiles"
+  local flat nested tagged hosted i
+
+  flat=$((n * 60 / 100))
+  nested=$((n * 25 / 100))
+  tagged=$((n * 10 / 100))
+  hosted=$((n - flat - nested - tagged))
+
+  mkdir -p "$dots" "$dots/tag-benchmark" "$dots/host-benchhost"
+
+  i=0
+  while [ $i -lt $flat ]; do
+    : >"$dots/flat$i"
+    i=$((i + 1))
+  done
+
+  i=0
+  while [ $i -lt $nested ]; do
+    mkdir -p "$dots/config/sub$((i % 10))"
+    : >"$dots/config/sub$((i % 10))/entry$i"
+    i=$((i + 1))
+  done
+
+  i=0
+  while [ $i -lt $tagged ]; do
+    : >"$dots/tag-benchmark/tagged$i"
+    i=$((i + 1))
+  done
+
+  i=0
+  while [ $i -lt $hosted ]; do
+    : >"$dots/host-benchhost/hosted$i"
+    i=$((i + 1))
+  done
+}
+
+if [ $real -eq 1 ]; then
+  echo "corpus:    real dotfiles"
+  lsrc_args=""
+  bench_env=""
+else
+  echo "corpus:    generated, $count entries requested"
+  generate_corpus "$tmp/home" "$count"
+  : >"$tmp/rcrc"
+  lsrc_args="-B benchhost -t benchmark"
+  bench_env="HOME=$tmp/home RCRC=$tmp/rcrc"
+fi
+
+echo "reference: $ref_name"
+echo "candidate: $root"
+echo
+
+mkdir "$tmp/ref"
+git -C "$root" archive "$ref_name" | tar -x -C "$tmp/ref"
+
+# configure writes the four commands mode 644. Only "make install" and
+# test/helper.sh set the executable bit, and this builds neither.
+(
+  cd "$tmp/ref"
+  ./autogen.sh || true
+  ./configure
+  chmod +x bin/lsrc bin/mkrc bin/rcup bin/rcdn
+) >"$tmp/build.log" 2>&1 || {
+  echo "benchmark: reference build failed" >&2
+  cat "$tmp/build.log" >&2
+  exit 2
+}
+
+chmod +x "$root/bin/lsrc"
+
+ref_cmd="$bench_env RCM_LIB=$tmp/ref/share $tmp/ref/bin/lsrc $lsrc_args"
+new_cmd="$bench_env RCM_LIB=$root/share $root/bin/lsrc $lsrc_args"
+
+# Timing two commands that disagree would be meaningless, so check first.
+eval "$ref_cmd" >"$tmp/out.ref" 2>&1 || true
+eval "$new_cmd" >"$tmp/out.new" 2>&1 || true
+
+if ! cmp -s "$tmp/out.ref" "$tmp/out.new"; then
+  echo "benchmark: output differs from $ref_name; see maint/difftest" >&2
+  exit 1
+fi
+
+echo "entries:   $(wc -l <"$tmp/out.new" | tr -d ' ')"
+echo
+
+# Run count is left to hyperfine's time budget rather than fixed. Anything
+# past a few hundred entries takes seconds per run, where a fixed 30 runs
+# means minutes of waiting for an answer that has already settled.
+hyperfine --warmup 3 --min-runs 10 --max-runs 30 \
+  -n "$ref_name" "$ref_cmd" \
+  -n "this tree" "$new_cmd"
