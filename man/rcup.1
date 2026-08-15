@@ -114,12 +114,17 @@ option in
 for more information.
 .It Fl q
 decrease verbosity.
+This suppresses the report of newly created symlinks.
 .It Fl V
 show the version number.
 .It Fl v
 increase verbosity.
 This can be repeated for extra verbosity.
-Verbose messages are printed to
+By default
+.Nm
+reports each symlink it creates; increasing verbosity additionally reports
+files that are already up to date.
+Messages are printed to
 .Li stdout .
 .It Fl x Ar EXCL_PAT
 do not install rc files that match
@@ -260,7 +265,10 @@ User configuration file. Defaults to
 .Xr rcm 7
 .Sh AUTHORS
 .Nm
-is maintained by
+is part of rcm-fast, maintained by
+.An "Dylan Forbes" Aq Mt dylandforbes@gmail.com .
+.Pp
+rcm, from which rcm-fast is derived, is maintained by
 .An "Mike Burns" Aq Mt mburns@thoughtbot.com
 and
 .Lk http://thoughtbot.com thoughtbot
