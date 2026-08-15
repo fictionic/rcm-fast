@@ -1,23 +1,8 @@
 rcm-fast
 ========
 
-A fork of [thoughtbot/rcm][upstream] with improved performance, bug fixes, and
-additional features. See `NEWS.md.in` for the full set of changes.
-
-The main draw: upstream forks several processes per dotfile just to compute its
-destination. This fork uses shell builtins instead, so `lsrc`—and `rcup`, `rcdn`
-and `mkrc`, which all call it—do that work without leaving the shell. On a
-200-entry dotfiles directory, this results in about a 3x speedup over upstream;
-see `maint/benchmark`.
-
-Upstream has had no behavioral code change since 2022 and its open pull
-requests go unreviewed, so this is maintained as its own project rather than
-as a patch series waiting to be pulled in.
-
-The `maint/difftest` script checks `lsrc` output byte-for-byte against upstream,
-to ensure behavior is unchanged.
-
-[upstream]: https://github.com/thoughtbot/rcm
+> A fork of [thoughtbot/rcm](https://github.com/thoughtbot/rcm) with improved
+> performance, bug fixes, and additional features.
 
 This is a management suite for dotfiles. **See the tutorial in `rcm(7)` to get
 started quickly.**
@@ -25,17 +10,41 @@ started quickly.**
 It assumes that you have a separate dotfiles directory, or are
 interested in creating one.
 
-The programs provided are `rcup(1)`, `mkrc(1)`, `rcdn(1)` and `lsrc(1)`. They
+The programs provided are `rcup(1)`, `mkrc(1)`, `rcdn(1)`, and `lsrc(1)`. They
 are explained in the tutorial and configured using `rcrc(5)`.
+
+Fast?
+-----
+
+This fork offers two advantages over upstream RCM:
+
+1. As the name suggests, it is faster. RCM is rather slow because it forks
+   several subprocesses per dotfile to compute their destination. `rcm-fast`
+   uses shell builtins instead, which, on a 200-entry dotfiles directory,
+   results in about a 3x speedup over upstream. (See `maint/benchmark`.)
+2. It fixes some relatively minor bugs.
+
+Behavior parity with upstream can be verified via the `maint/difftest` script,
+which checks `lsrc` output against your actual dotfiles.
+
+Because RCM has had no behavioral code change since 2022 (and its open pull
+requests go unreviewed), this is maintained as its own project rather than as a
+patch series waiting to be pulled in.
 
 Installation
 ------------
 
-From a release tarball -- needs no autotools or pystache:
+Arch Linux: (AUR package coming soon)
 
-    curl -LO https://github.com/fictionic/rcm-fast/releases/download/v2.0.0/rcm-fast-2.0.0.tar.gz
-    tar -xf rcm-fast-2.0.0.tar.gz
-    cd rcm-fast-2.0.0
+With Homebrew:
+
+    brew install fictionic/tap/rcm-fast
+
+From a release tarball:
+
+    curl -LO https://github.com/fictionic/rcm-fast/releases/download/$VERSION/rcm-fast-$VERSION.tar.gz
+    tar -xf rcm-fast-$VERSION.tar.gz
+    cd rcm-fast-$VERSION
     ./configure
     make
     sudo make install
@@ -49,10 +58,7 @@ From git -- needs autoconf, automake and pystache:
     make
     sudo make install
 
-This conflicts with upstream `rcm`: both provide `lsrc`, `mkrc`, `rcup` and
-`rcdn`. Remove one before installing the other.
-
-For more, see `INSTALL`.
+Of course, make sure to remove an installation of upstream RCM first.
 
 Programs
 --------
