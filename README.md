@@ -1,5 +1,23 @@
-rcm
-===
+rcm-fast
+========
+
+A fork of [thoughtbot/rcm][upstream] with improved performance, bug fixes, and
+additional features. See `NEWS.md.in` for the full set of changes.
+
+The main draw: upstream forks several processes per dotfile just to compute its
+destination. This fork uses shell builtins instead, so `lsrc`—and `rcup`, `rcdn`
+and `mkrc`, which all call it—do that work without leaving the shell. On a
+200-entry dotfiles directory, this results in about a 3x speedup over upstream;
+see `maint/benchmark`.
+
+Upstream has had no behavioral code change since 2022 and its open pull
+requests go unreviewed, so this is maintained as its own project rather than
+as a patch series waiting to be pulled in.
+
+The `maint/difftest` script checks `lsrc` output byte-for-byte against upstream,
+to ensure behavior is unchanged.
+
+[upstream]: https://github.com/thoughtbot/rcm
 
 This is a management suite for dotfiles. **See [the tutorial][rcm7] to get
 started quickly.**
@@ -14,92 +32,26 @@ using [rcrc(5)][rcrc5].
 Installation
 ------------
 
-Alpine Linux:
+From a release tarball -- needs no autotools or pystache:
 
-    sudo apk add rcm
-
-Arch Linux:
-
-    https://aur.archlinux.org/packages/rcm/
-
-Debian (see further down for Ubuntu):
-
-    sudo wget -q https://apt.tabfugni.cc/thoughtbot.gpg.key -O /etc/apt/trusted.gpg.d/thoughtbot.gpg
-    echo "deb https://apt.tabfugni.cc/debian/ stable main" | sudo tee /etc/apt/sources.list.d/thoughtbot.list
-    sudo apt-get update
-    sudo apt-get install rcm
-
-Fedora:
-
-    sudo dnf install rcm
-
-FreeBSD:
-
-    sudo pkg install rcm
-
-Gentoo:
-
-    emerge app-admin/rcm
-
-Korora:
-
-  64-bit Korora 23:
-
-    sudo dnf copr enable seeitcoming/rcm fedora-23-x86_64
-    sudo dnf install rcm
-
-  Korora is similar to Fedora but with [an additional version and architecture
-  specification][copr-fedora-korora]. Replace `fedora-23-x86_64` as
-  appropriate.
-
-  [copr-fedora-korora]: https://kororaproject.org/about/news/when-adding-a-copr-repo-to-korora-fails
-
-macOS with Homebrew:
-
-    brew install rcm
-
-macOS with MacPorts:
-
-    port install rcm
-
-OpenBSD:
-
-    doas pkg_add rcm
-
-openSUSE/RHEL/CentOS: [instructions](http://software.opensuse.org/download.html?project=utilities&package=rcm)
-
-Ubuntu (19.04 or later):
-
-    sudo apt update
-    sudo apt install rcm
-
-Ubuntu (12.04, 14.04, 16.04, 18.04, or 18.10):
-
-    sudo apt-get install software-properties-common
-    sudo add-apt-repository ppa:martin-frost/thoughtbot-rcm
-    sudo apt-get update
-    sudo apt-get install rcm
-
-Void Linux:
-
-    sudo xbps-install -S rcm
-
-Elsewhere:
-
-This uses the standard GNU autotools, so it's the normal dance:
-
-    curl -LO https://thoughtbot.github.io/rcm/dist/rcm-1.3.4.tar.gz &&
-
-    # Use sha256sum with GNU coreutils, sha256 on BSD and macOS
-    sha=$(sha256sum rcm-1.3.4.tar.gz | cut -f1 -d' ') &&
-    [ "$sha" = "9b11ae37449cf4d234ec6d1348479bfed3253daba11f7e9e774059865b66c24a" ] &&
-
-    tar -xvf rcm-1.3.4.tar.gz &&
-    cd rcm-1.3.4 &&
-
-    ./configure &&
-    make &&
+    curl -LO https://github.com/fictionic/rcm-fast/releases/download/v2.0.0/rcm-fast-2.0.0.tar.gz
+    tar -xf rcm-fast-2.0.0.tar.gz
+    cd rcm-fast-2.0.0
+    ./configure
+    make
     sudo make install
+
+From git -- needs autoconf, automake and pystache:
+
+    git clone https://github.com/fictionic/rcm-fast
+    cd rcm-fast
+    ./autogen.sh
+    ./configure
+    make
+    sudo make install
+
+This conflicts with upstream `rcm`: both provide `lsrc`, `mkrc`, `rcup` and
+`rcdn`. Remove one before installing the other.
 
 For more, see `INSTALL`.
 
@@ -126,28 +78,13 @@ Programs
 Support
 -------
 
-Pull requests welcome; see `CONTRIBUTING.md`.
+This is a personal fork, maintained for my own use. I am not soliciting
+contributions and make no promises about response times. See `DEVELOPERS.md`
+to build it yourself.
 
 License
 -------
 
 Copyright 2013 Mike Burns. BSD license.
 Copyright 2014 thoughtbot. BSD license.
-
-<!-- START /templates/footer.md -->
-## About thoughtbot
-
-![thoughtbot](https://thoughtbot.com/thoughtbot-logo-for-readmes.svg)
-
-This repo is maintained and funded by thoughtbot, inc.
-The names and logos for thoughtbot are trademarks of thoughtbot, inc.
-
-We love open source software!
-See [our other projects][community].
-We are [available for hire][hire].
-
-[community]: https://thoughtbot.com/community?utm_source=github
-[hire]: https://thoughtbot.com/hire-us?utm_source=github
-
-
-<!-- END /templates/footer.md -->
+Copyright 2026 Dylan Forbes. BSD license.
