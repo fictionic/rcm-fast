@@ -1,6 +1,6 @@
 #!@SHELL@
 
-: ${RCM_LIB:=$(dirname "$0")/../share/rcm}
+: ${RCM_LIB:=$(dirname "$0")/../share/@PACKAGE@}
 . "$RCM_LIB/rcm.sh"
 
 remove_link() {
