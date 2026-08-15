@@ -1,53 +1,23 @@
 #!/bin/sh
 
-ORIGIN_URL=$(git config --get remote.origin.url)
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 PACKAGE='@PACKAGE@'
 PACKAGE_VERSION='@PACKAGE_VERSION@'
-abs_srcdir='@abs_srcdir@'
 srcdir='@srcdir@'
-abs_top_builddir='@abs_top_builddir@'
-dist_man_MANS='lsrc.1 mkrc.1 rcdn.1 rcup.1 rcrc.5 rcm.7'
-
-# Tarball
-release_build_tarball() {
-  ([ -d gh-pages ] || git clone --branch gh-pages . gh-pages) && \
-    ([ -d gh-pages/dist ] || mkdir gh-pages/dist) && \
-    cp $DIST_ARCHIVES gh-pages/dist && \
-    cd gh-pages && \
-      git add dist/$DIST_ARCHIVES && \
-      git commit -m "Release version $PACKAGE_VERSION tarball"
-}
-
-release_push_tarball() {
-  cd gh-pages && \
-    git push
-}
-
-release_clean_tarball() {
-  rm -rf gh-pages
-  rm -rf $DIST_ARCHIVES
-}
 
 # Arch
 release_build_arch() {
-  ([ -d gh-pages ] || git clone --branch gh-pages . gh-pages) && \
-    ([ -d gh-pages/arch ] || mkdir gh-pages/arch) && \
-    generate_dist_sha && \
-    edit_package arch/PKGBUILD.in > gh-pages/arch/PKGBUILD &&\
-    cd gh-pages &&\
-      git add arch/PKGBUILD &&\
-      git commit -m "Release version $PACKAGE_VERSION Arch package"
+  generate_dist_sha && \
+    edit_package arch/PKGBUILD.in > arch/PKGBUILD
 }
 
 release_push_arch() {
-  cd gh-pages && \
-    git push
+  echo >&2 "release: publishing to the AUR is not automated; upload arch/PKGBUILD"
+  echo >&2 "         and its .SRCINFO to the AUR repository by hand."
+  exit 1
 }
 
 release_clean_arch() {
-  rm -rf gh-pages
-  rm -rf $DIST_ARCHIVES
+  rm -f arch/PKGBUILD
 }
 
 generate_dist_sha() {
@@ -63,42 +33,6 @@ edit_package() {
     "$1"
 }
 
-# Deb
-release_build_deb() {
-  mkdir deb-build && \
-    cp ${DIST_ARCHIVES} deb-build/${PACKAGE}_${PACKAGE_VERSION}.orig.tar.gz && \
-    tar -C deb-build -xf deb-build/${PACKAGE}_${PACKAGE_VERSION}.orig.tar.gz && \
-    cp -R debian deb-build/${PACKAGE}-${PACKAGE_VERSION} && \
-    cd deb-build/${PACKAGE}-${PACKAGE_VERSION} && \
-    dch -d "New upstream release" && dch -r "" && \
-    debuild --prepend-path=/usr/local/bin -F && \
-    cd ${abs_top_builddir} && \
-    ([ -d gh-pages ] || git clone --branch gh-pages ${ORIGIN_URL} gh-pages) && \
-    mkdir gh-pages/debs && \
-    mkdir gh-pages/deb-src && \
-    cp deb-build/${PACKAGE}_${PACKAGE_VERSION}*.deb gh-pages/debs && \
-    cp deb-build/${PACKAGE}_${PACKAGE_VERSION}*.dsc gh-pages/deb-src && \
-    cp deb-build/${PACKAGE}_${PACKAGE_VERSION}*.orig.tar.?z gh-pages/deb-src && \
-    cp deb-build/${PACKAGE}_${PACKAGE_VERSION}*.debian.tar.?z gh-pages/deb-src && \
-    cd gh-pages && \
-    git add debs/${PACKAGE}_${PACKAGE_VERSION}*deb && \
-    git add deb-src/${PACKAGE}_${PACKAGE_VERSION}*dsc && \
-    git add deb-src/${PACKAGE}_${PACKAGE_VERSION}*orig.tar.?z && \
-    git add deb-src/${PACKAGE}_${PACKAGE_VERSION}*debian.tar.?z && \
-    git commit -m "Release version ${PACKAGE_VERSION} for Debian" -- debs/${PACKAGE}_${PACKAGE_VERSION}*deb
-}
-
-release_push_deb() {
-  cd gh-pages && \
-    git push
-}
-
-release_clean_deb() {
-  rm -rf gh-pages
-  rm -rf deb-build
-  rm -rf $DIST_ARCHIVES
-}
-
 # Tag
 release_build_tag() {
   git tag -s v$PACKAGE_VERSION -m "Release $PACKAGE_VERSION"
@@ -112,31 +46,31 @@ release_clean_tag() {
   :
 }
 
-# manpages as HTML
-release_build_man_html() {
-  ([ -d gh-pages ] || git clone --branch gh-pages . gh-pages) && \
-  for i in $dist_man_MANS; do \
-    mandoc -Thtml -Oman=%N.%S.html man/$i > $abs_top_builddir/gh-pages/$i.html ; \
-  done && \
-  cd $abs_top_builddir/gh-pages && \
-  cp rcm.7.html index.html && \
-  git add -A && \
-  git commit -m "HTML documentation for $PACKAGE_VERSION"
+# GitHub release
+release_build_github() {
+  gh release create "v$PACKAGE_VERSION" "$srcdir/$DIST_ARCHIVES" \
+    --draft \
+    --title "$PACKAGE $PACKAGE_VERSION" \
+    --notes "$(extract_news)"
 }
 
-release_push_man_html() {
-  cd $abs_top_builddir/gh-pages && \
-    git push -f $ORIGIN_URL gh-pages
+release_push_github() {
+  gh release edit "v$PACKAGE_VERSION" --draft=false
 }
 
-release_clean_man_html() {
-  rm -rf $abs_top_builddir/gh-pages
+release_clean_github() {
+  rm -f "$srcdir/$DIST_ARCHIVES"
+}
+
+# The topmost stanza of NEWS.md, without its header or signature line.
+extract_news() {
+  sed -n '3,/^ -- /{/^ -- /d;p;}' "$srcdir/NEWS.md"
 }
 
 # Main:
 
 if [ $# -lt 3 ]; then
-  echo "Usage: release (build|push|clean) (tarball|arch|deb|tag|man_html) DIST_ARCHIVES" >&2
+  echo "Usage: release (build|push|clean) (tag|github|arch) DIST_ARCHIVES" >&2
   exit 64
 fi
 
@@ -145,8 +79,8 @@ if ! command -v git >/dev/null; then
   exit 1
 fi
 
-if ! command -v mandoc >/dev/null; then
-  echo >&2 "release: missing dependency: git"
+if ! command -v gh >/dev/null; then
+  echo >&2 "release: missing dependency: gh"
   exit 1
 fi
 
