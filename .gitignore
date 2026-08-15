@@ -18,7 +18,6 @@ depcomp
 debian/rcm
 debian/rcm.debhelper.log
 share/rcm.sh
-arch/git-PKGBIULD
 bin/lsrc
 bin/mkrc
 bin/rcup
@@ -45,3 +44,7 @@ test-suite.log
 # Other generated files
 man/rcm.7
 maint/release
+
+# makepkg build artifacts
+arch/src/
+arch/pkg/
