@@ -1,6 +1,49 @@
 Developers
 ==========
 
+Setup
+-----
+
+1. Install dependencies:
+   - cram, for the test suite: `pip install cram`
+   - pystache, to build `man/rcm.7` from its mustache template:
+     `pip install pystache`
+2. Prepare the build system: `./autogen.sh`. (This depends on GNU autoconf
+   and GNU automake.)
+3. Configure the package: `./configure`.
+4. Make sure the tests pass: `make check`.
+
+Testing
+-------
+
+The test suite uses [cram][]. It is an integration suite, meaning the
+programs are exercised from the outside and assertions are made only on
+their output or effects.
+
+The test suite requires Perl with the `Cwd` module. It expects to find Perl as
+`perl` in `$PATH`.
+
+All tests can be run like so:
+
+    make check
+
+Individual tests can be run like so:
+
+    env TESTS=test/lsrc-dotfiles-dirs.t make -e check
+
+If you intend to write a new test:
+
+1. Add your test at `test/subcommand-something-meaningful.t`.
+2. Add the relative name to the `TESTS` variable in `Makefile.am`.
+3. Source `test/helper.sh` as the first line of your test.
+4. When in doubt, use existing tests as a guide.
+
+`maint/difftest` compares this tree's `lsrc` output against unmodified upstream
+rcm, over your real dotfiles. `make check` cannot catch a divergence there,
+since both trees satisfy the same cram expectations.
+
+[cram]: https://bitheap.org/cram/
+
 Making a release
 ----------------
 
@@ -39,20 +82,3 @@ Making a release
         ./maint/release clean tarball rcm-*.tar.gz
         ./maint/release clean tag rcm-*.tar.gz
         ./maint/release clean man_html rcm-*.tar.gz
-
-4. Contact package maintainers:
-
-| OS       | Name                       | Email                         | PGP keyid          |
-| -------- | -------------------------- | ----------------------------- | ------------------ |
-| Alpine   | Hiroshi Kajisha            | <kajisha@gmail.com>           | ?                  |
-| Arch     | Max Falk                   | <gmdfalk@gmail.com>           | 0x9cbdc83ba3753845 |
-| Debian   | Eric Collins               | <eric+debian@tabfugni.cc>     | 0x7BEB44E2771AB877 |
-| Fedora   | Carl van Tonder            | <carl@supervacuo.com>         | 0xa478c47bcb683786 |
-| Gentoo   | Florian Tham               | <fgtham@gmail.com>            | 0x7286dc0e62941423 |
-| Korora   | Carl van Tonder            | <carl@supervacuo.com>         | 0xb55275fbcbe8383c |
-| Homebrew | Stephen Groat              | <stephen@groat.us>            | 0x3FEA0C7A20399F68 |
-| MacPorts | Aljaž Srebrnič             | <a2piratesoft@gmail.com>      | 0xe140e1eea54ee677 |
-| OpenBSD  | Mike Burns                 | <mike+openbsd@mike-burns.com> | 0x3E6761F72846B014 |
-| openSUSE | Andrei Dziahel             | <develop7@develop7.info>      | 0x58BA3FA4A49D76C2 |
-| Ubuntu   | Martin Frost               | <frost@ceri.se>               | 0x4609D1E5ECA538E6 |
-| Void     | maxice8                    | <thinkabit.ukim@gmail.com>    | 0xffaeeb9ca1c95204 |
