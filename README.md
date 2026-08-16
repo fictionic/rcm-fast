@@ -34,9 +34,11 @@ patch series waiting to be pulled in.
 Installation
 ------------
 
-Arch Linux: (AUR package coming soon)
+Arch Linux (AUR):
 
-With Homebrew:
+    https://aur.archlinux.org/packages/rcm-fast
+
+MacOS (Homebrew):
 
     brew install fictionic/tap/rcm-fast
 
@@ -49,7 +51,7 @@ From a release tarball:
     make
     sudo make install
 
-From git -- needs autoconf, automake and pystache:
+From source -- needs autoconf, automake and pystache:
 
     git clone https://github.com/fictionic/rcm-fast
     cd rcm-fast
