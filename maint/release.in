@@ -6,18 +6,23 @@ srcdir='@srcdir@'
 
 # Arch
 release_build_arch() {
+  if ! command -v makepkg >/dev/null; then
+    echo >&2 "release: missing dependency: makepkg"
+    exit 1
+  fi
   generate_dist_sha && \
-    edit_package arch/PKGBUILD.in > arch/PKGBUILD
+    edit_package arch/PKGBUILD.in > arch/PKGBUILD && \
+    (cd arch && makepkg --printsrcinfo > .SRCINFO)
 }
 
 release_push_arch() {
   echo >&2 "release: publishing to the AUR is not automated; upload arch/PKGBUILD"
-  echo >&2 "         and its .SRCINFO to the AUR repository by hand."
+  echo >&2 "         and arch/.SRCINFO to the AUR repository by hand."
   exit 1
 }
 
 release_clean_arch() {
-  rm -f arch/PKGBUILD
+  rm -f arch/PKGBUILD arch/.SRCINFO
 }
 
 generate_dist_sha() {
