@@ -1,5 +1,13 @@
 @PACKAGE@ (@PACKAGE_VERSION@) unstable; urgency=low
 
+  * Feature: rcgc, a new command that removes broken symlinks left behind by a
+      deleted or renamed dotfile. It lists the symlinks it finds and asks
+      once before it removes them. See rcgc(1).
+
+ -- Dylan Forbes <dylandforbes@gmail.com>  Thu, 20 Aug 2026 19:17:19 -0700
+
+rcm-fast (2.0.0) unstable; urgency=low
+
   * Forked from thoughtbot/rcm 1.3.6 and renamed to rcm-fast.
   * Performance: lsrc, mkrc, rcup and rcdn use shell built-ins in place of
       forking sed, grep and basename once per dotfile.
