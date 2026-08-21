@@ -28,7 +28,7 @@ and
 programs.
 .Pp
 It supports these variables:
-.Bl -tag -width "DOTFILES_DIRS"
+.Bl -tag -width "NEVER_UNDOTTED"
 .It Va COPY_ALWAYS
 always copy files that match the listed globs, never symlink them.
 .
@@ -62,11 +62,29 @@ symlinked instead of descended. Patterns are explained in detail in
 under the section
 .Sx EXCLUDE PATTERN .
 .
+.It Va MK_DIRS
+a space-separated list of patterns. Directories matching a pattern are
+descended into, even if they also match
+.Va SYMLINK_DIRS .
+Patterns are explained in detail in
+.Xr lsrc 1
+under the section
+.Sx EXCLUDE PATTERN .
+.
 .It Va UNDOTTED
 a space separated list of patterns. Files matching this pattern
 will be symlinked without a leading dot. If a file is also in
 .Va SYMLINK_DIRS ,
 then the directory will be symlinked without a leading dot.
+Patterns are explained in detail in
+.Xr lsrc 1
+under the section
+.Sx EXCLUDE PATTERN .
+.
+.It Va NEVER_UNDOTTED
+a space separated list of patterns. Files matching this pattern are
+symlinked with a leading dot, even if they also match
+.Va UNDOTTED .
 Patterns are explained in detail in
 .Xr lsrc 1
 under the section
@@ -83,7 +101,9 @@ under the section
 .Dl HOSTNAME="eggplant"
 .Dl TAGS="freebsd development email git laptop gmail notmuch"
 .Dl SYMLINK_DIRS="zprezto texmf"
+.Dl MK_DIRS="config"
 .Dl UNDOTTED="texmf"
+.Dl NEVER_UNDOTTED="gnupg"
 .Sh SEE ALSO
 .Xr lsrc 1 ,
 .Xr mkrc 1 ,
