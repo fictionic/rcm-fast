@@ -11,5 +11,5 @@ solaris*)
 esac
 AC_SUBST([SHELL])
 
-AC_CONFIG_FILES([Makefile share/rcm.sh arch/git-PKGBUILD NEWS.md bin/lsrc bin/mkrc bin/rcdn bin/rcup maint/release])
+AC_CONFIG_FILES([Makefile share/rcm.sh arch/git-PKGBUILD NEWS.md bin/lsrc bin/mkrc bin/rcdn bin/rcup bin/rcgc maint/release])
 AC_OUTPUT

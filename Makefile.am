@@ -1,10 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = LICENSE README.md NEWS.md
 
-dist_bin_SCRIPTS = bin/lsrc bin/mkrc bin/rcup bin/rcdn
+dist_bin_SCRIPTS = bin/lsrc bin/mkrc bin/rcup bin/rcdn bin/rcgc
 
-# When changing this you must also change maint/release.in .
-dist_man_MANS = man/lsrc.1 man/mkrc.1 man/rcdn.1 man/rcup.1 man/rcrc.5 man/rcm.7
+dist_man_MANS = man/lsrc.1 man/mkrc.1 man/rcdn.1 man/rcup.1 man/rcgc.1 man/rcrc.5 man/rcm.7
 
 dist_pkgdata_DATA = share/rcm.sh
 
@@ -55,7 +54,18 @@ TESTS = \
 	test/rcup-hooks-failure.t \
 	test/rcup-hooks-run-in-situ.t \
 	test/rcup-hooks-run-in-order.t \
-	test/rcup-spaces.t
+	test/rcup-spaces.t \
+	test/rcgc-nothing.t \
+	test/rcgc-usage.t \
+	test/rcgc-stale.t \
+	test/rcgc-ownership.t \
+	test/rcgc-force.t \
+	test/rcgc-roots.t \
+	test/rcgc-all.t \
+	test/rcgc-tags.t \
+	test/rcgc-dotfiles-dirs.t \
+	test/rcgc-undotted.t \
+	test/rcgc-rcup.t
 
 dist_check_SCRIPTS = $(TESTS)
 dist_check_DATA = test/helper.sh

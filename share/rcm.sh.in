@@ -62,6 +62,129 @@ is_nested() {
   echo "$1" | sed "s|$DEST_DIR/||" | grep '/' >/dev/null
 }
 
+# eval echo expands a DOTFILES_DIRS entry: ~, $variables and command
+# substitution all apply. a relative result becomes absolute against $2, which
+# defaults to the current directory
+resolve_dotfiles_dir() {
+  local dotfiles_dir="$(eval echo "$1")"
+  local base="${2:-$PWD}"
+
+  if is_relative "$dotfiles_dir"; then
+    dotfiles_dir="$base/$dotfiles_dir"
+  fi
+
+  echo "$dotfiles_dir"
+}
+
+dotfiles_dir_excludes() {
+  local dotfiles_dir="$1"
+  local excludes="$2"
+  local exclude
+  local dotfiles_dir_pat
+  local file_glob
+  local had_noglob
+
+  $DEBUG "dotfiles_dir_excludes $dotfiles_dir"
+  $DEBUG "  with excludes: $excludes"
+
+  # restore, do not clobber: the caller may have turned globbing off itself
+  case "$-" in
+    *f*) had_noglob=1 ;;
+    *) had_noglob= ;;
+  esac
+
+  set -o noglob
+  for exclude in $excludes; do
+    if echo "$exclude" | grep ':' >/dev/null; then
+      dotfiles_dir_pat="$(echo "$exclude" | sed 's/:.*//')"
+      file_glob="$(echo "$exclude" | sed 's/.*://')"
+
+      if [ "x$dotfiles_dir_pat" != "x*" ] && is_relative "$dotfiles_dir_pat"; then
+        dotfiles_dir_pat="$PWD/$dotfiles_dir_pat"
+      fi
+
+      if [ "x$dotfiles_dir_pat" = "x*" -o "x$dotfiles_dir_pat" = "x$dotfiles_dir" ]; then
+        echo "$file_glob"
+      fi
+    else
+      echo "$exclude"
+    fi
+  done
+  [ -n "$had_noglob" ] || set +o noglob
+}
+
+# the glob lists expand unquoted in is_excluded_unguarded, and the caller's
+# current directory has no relation to the files under test. keep pathname
+# expansion off, or the shell replaces a pattern with the names it matches
+is_excluded() {
+  local ret
+  local had_noglob
+
+  # restore, do not clobber: the caller may have turned globbing off itself
+  case "$-" in
+    *f*) had_noglob=1 ;;
+    *) had_noglob= ;;
+  esac
+
+  set -o noglob
+  is_excluded_unguarded "$@"
+  ret=$?
+  [ -n "$had_noglob" ] || set +o noglob
+
+  return $ret
+}
+
+is_excluded_unguarded() {
+  local file="$1"
+  local exclude_file_globs="$2"
+  local include_file_globs="$3"
+  local base_file="${file##*/}"
+  local exclude_file_glob
+  local ret
+
+  $DEBUG "is_excluded $file $exclude_file_globs $include_file_globs"
+
+  for exclude_file_glob in $exclude_file_globs; do
+    $DEBUG "file: $file"
+    $DEBUG "exclude_file_glob: $exclude_file_glob"
+
+    is_single_excluded "$file" "$exclude_file_glob" "$include_file_globs"
+    ret=$?
+    if [ $ret -eq 0 -o $ret -eq 1 ]; then
+      return $ret
+    fi
+
+    is_single_excluded "$base_file" "$exclude_file_glob" "$include_file_globs"
+    ret=$?
+    if [ $ret -eq 0 -o $ret -eq 1 ]; then
+      return $ret
+    fi
+  done
+
+  return 1
+}
+
+is_single_excluded() {
+  local file="$1"
+  local exclude_file_glob="$2"
+  local include_file_globs="$3"
+  local include_file_glob
+
+  case "$file" in
+    $exclude_file_glob)
+      for include_file_glob in $include_file_globs; do
+        case "$file" in
+          $include_file_glob) return 1;;
+        esac
+      done
+
+      return 0
+      ;;
+  esac
+
+  return 2
+}
+
 version() {
   cat << EOV
 $1 (rcm) $VERSION

@@ -1,0 +1,108 @@
+.Dd August 16, 2026
+.Dt RCGC 1
+.Os
+.Sh NAME
+.Nm rcgc
+.Nd remove leftover broken symlinks
+.Sh SYNOPSIS
+.Nm rcgc
+.Op Fl afhnqVv
+.Op Fl d Ar dir
+.Sh DESCRIPTION
+This program will find symlinks in
+.Pa $HOME
+that point into a dotfiles directory but would not be listed by
+.Xr lsrc 1 .
+Typically such links are the result of deleting or renaming a dotfile.
+.Pp
+The
+.Nm
+program finds those links, lists them, and then asks once whether to
+remove the whole batch.
+.Pp
+By default,
+.Nm
+only searches within
+.Pa $HOME
+subdirectories that are managed by rcm--that is, those
+that
+.Xr rcup 1
+would create and that
+.Xr rcdn 1
+would remove.
+If an entire subdirectory is deleted from a dotfiles directory, pass
+.Fl a
+to broaden the scan to include all of
+.Pa $HOME ;
+otherwise the stale links pointing into the deleted directory will not be
+detected.
+.Pp
+When a link is removed and it was the last entry in its directory, that
+directory is also removed.
+.Pp
+.Bl -tag -width "-d DIR"
+.It Fl a
+search all of
+.Pa $HOME
+rather than only the directories implied by the dotfiles repository layout.
+.It Fl d Ar DIR
+remove links pointing into
+.Ar DIR
+instead of those named by
+.Va DOTFILES_DIRS .
+This can be specified multiple times.
+.It Fl f
+do not prompt to delete links; assume a response of
+.Qq y .
+.It Fl h
+show usage instructions.
+.It Fl n
+do not prompt to delete links; assume a response of
+.Qq n .
+.It Fl q
+decrease verbosity. Implies
+.Fl n.
+Use with
+.Fl f
+to remove links quietly.
+.It Fl v
+increase verbosity. This can be repeated for extra verbosity.
+.It Fl V
+show the version number.
+.El
+.
+.Sh IMPLEMENTATION NOTES
+Because
+.Xr rcup 1
+cannot create a link whose target path contains a newline, or a link with a
+relative target path, these links are always left alone even if they are broken,
+as they are assumed to have been created manually.
+.Sh ENVIRONMENT
+.Bl -tag -width ".Ev RCRC"
+.It Ev RCRC
+User configuration file. Defaults to
+.Pa ~/.rcrc .
+.El
+.Sh FILES
+.Pa ~/.rcrc
+.Sh EXAMPLES
+.Dl rcgc
+.Dl rcgc -qf
+.Dl rcgc -a
+.Dl rcgc -d ~/corporate-dotfiles
+.Sh SEE ALSO
+.Xr lsrc 1 ,
+.Xr mkrc 1 ,
+.Xr rcdn 1 ,
+.Xr rcup 1 ,
+.Xr rcrc 5 ,
+.Xr rcm 7
+.Sh AUTHORS
+.Nm
+is part of rcm-fast, maintained by
+.An "Dylan Forbes" Aq Mt dylandforbes@gmail.com .
+.Pp
+rcm, from which rcm-fast is derived, is maintained by
+.An "Mike Burns" Aq Mt mburns@thoughtbot.com
+and
+.Lk http://thoughtbot.com thoughtbot

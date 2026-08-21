@@ -1,4 +1,4 @@
-for bin in lsrc mkrc rcup rcdn; do
+for bin in lsrc mkrc rcup rcdn rcgc; do
   chmod +x "$TESTDIR/../bin"/$bin
 done
 

@@ -10,19 +10,21 @@ started quickly.**
 It assumes that you have a separate dotfiles directory, or are
 interested in creating one.
 
-The programs provided are `rcup(1)`, `mkrc(1)`, `rcdn(1)`, and `lsrc(1)`. They
-are explained in the tutorial and configured using `rcrc(5)`.
+The programs provided are `rcup(1)`, `mkrc(1)`, `rcdn(1)`, `lsrc(1)`, and
+`rcgc(1)`. They are explained in the tutorial and configured using `rcrc(5)`.
 
 Fast?
 -----
 
-This fork offers two advantages over upstream RCM:
+This fork offers three advantages over upstream RCM:
 
 1. As the name suggests, it is faster. RCM is rather slow because it forks
    several subprocesses per dotfile to compute their destination. `rcm-fast`
    uses shell builtins instead, which, on a 200-entry dotfiles directory,
    results in about a 3x speedup over upstream. (See `maint/benchmark`.)
-2. It fixes some relatively minor bugs.
+2. It has a feature that RCM lacks: a command for finding and removing
+   broken symbolic links to dotfiles that no longer exist. See `rcgc(1)`.
+3. It fixes some relatively minor bugs.
 
 Behavior parity with upstream can be verified via the `maint/difftest` script,
 which checks `lsrc` output against your actual dotfiles.
@@ -74,6 +76,8 @@ Programs
 * `lsrc(1)` shows you all your dotfiles and where they would be
   symlinked to. It is used by `rcup(1)` but is provided for your own
   use, too.
+* `rcgc(1)` removes symlinks created by `rcup(1)` that are now broken
+  because their dotfiles were renamed or deleted.
 
 Support
 -------

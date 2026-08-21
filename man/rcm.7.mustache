@@ -8,6 +8,7 @@
 .Nm lsrc
 .Nm mkrc
 .Nm rcdn
+.Nm rcgc
 .Nm rcup
 .Sh DESCRIPTION
 The rcm suite of tools is for managing dotfiles directories. This is a
@@ -249,6 +250,51 @@ macOS users should see the
 .Sx BUGS
 section for more details.
 .
+.Sh BROKEN SYMLINKS
+The rcm suite works from the files that your dotfiles directories hold
+now. If you remove or rename one of those files,
+.Xr rcup 1
+installs a symlink for the new name. The symlink for the old name stays
+in your home directory, and it is now broken.
+.Pp
+.Xr rcdn 1
+removes the symlinks for the files that are in your dotfiles
+directories, so it does not remove these. Use
+.Xr rcgc 1
+for this. It lists the broken symlinks that it finds, then asks once to
+remove them all. If the removal makes a directory empty, it removes that
+directory too.
+.Pp
+.Dl rcgc
+.Pp
+Use the
+.Fl f
+option to remove the symlinks without a question, or the
+.Fl n
+option to list them only.
+.Pp
+.Dl rcgc -n
+.Pp
+Only symlinks that point into one of your dotfiles directories are
+removed. A symlink that still resolves, one that points elsewhere, or
+one that a different program made stays as it is.
+.Pp
+By default,
+.Xr rcgc 1
+searches the directories that
+.Xr rcup 1
+installs into, which it calculates from the layout of your dotfiles
+directories. A directory that you removed from a dotfiles directory is
+not in that list: if
+.Pa config/
+is no longer there, nothing points to
+.Pa ~/.config .
+Use the
+.Fl a
+option for these, and after a new checkout.
+.Pp
+.Dl rcgc -a
+.
 .Sh STANDALONE INSTALLATION SCRIPT
 .
 The
@@ -292,6 +338,7 @@ dotfiles, too.
 .Xr lsrc 1 ,
 .Xr mkrc 1 ,
 .Xr rcdn 1 ,
+.Xr rcgc 1 ,
 .Xr rcup 1 ,
 .Xr rcrc 5
 .Sh AUTHORS
