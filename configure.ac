@@ -11,5 +11,10 @@ solaris*)
 esac
 AC_SUBST([SHELL])
 
-AC_CONFIG_FILES([Makefile share/rcm.sh arch/git-PKGBUILD NEWS.md bin/lsrc bin/mkrc bin/rcdn bin/rcup bin/rcgc maint/release])
+AC_CONFIG_FILES([Makefile share/rcm.sh arch/git-PKGBUILD NEWS.md bin/lsrc bin/mkrc bin/rcdn bin/rcup bin/rcgc])
+
+# config.status does not copy the mode of the input file, so make this one
+# executable. DEVELOPERS.md tells the maintainer to run it as ./maint/release .
+AC_CONFIG_FILES([maint/release], [chmod +x maint/release])
+
 AC_OUTPUT
