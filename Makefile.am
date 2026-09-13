@@ -64,6 +64,7 @@ TESTS = \
 	test/rcgc-ownership.t \
 	test/rcgc-prompt.t \
 	test/rcgc-force.t \
+	test/rcgc-rmdir.t \
 	test/rcgc-metafiles.t \
 	test/rcgc-haystacks.t \
 	test/rcgc-symlink-dest.t \

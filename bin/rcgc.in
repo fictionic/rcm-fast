@@ -270,14 +270,5 @@ while IFS= read -r link; do
   $PRINT "removing: $link -> $(readlink "$link")"
   rm -- "$link"
 
-  # drop the containing directory if the link was the last thing in it, but
-  # never $DEST_DIR itself
-  parent="${link%/*}"
-  case "$parent" in
-    "" | "/" | "$DEST_DIR") ;;
-    *) rmdir -- "$parent" 2>/dev/null || true ;;
-  esac
+  prune_empty_dirs "${link%/*}"
 done < "$TMPFILE"
-
-# the rmdir fails on non-empty directories; don't take its exit status with us
-exit 0

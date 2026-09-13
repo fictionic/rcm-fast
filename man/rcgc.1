@@ -49,8 +49,12 @@ will not see by default. In this case, pass
 to broaden the scan to all of
 .Pa ~ .
 .Pp
-When a link is removed and it was the last entry in its directory, that
-directory is also removed.
+If any empty directories are left over after removing broken symlinks, they are
+also removed. (But a directory at the top of
+.Pa ~ ,
+such as
+.Pa ~/.config ,
+is always retained.)
 .Pp
 .Bl -tag -width "-d DIR"
 .It Fl a
