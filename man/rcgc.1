@@ -1,4 +1,4 @@
-.Dd August 16, 2026
+.Dd September 13, 2026
 .Dt RCGC 1
 .Os
 .Sh NAME
@@ -9,42 +9,56 @@
 .Op Fl afhnqVv
 .Op Fl d Ar dir
 .Sh DESCRIPTION
-This program will find symlinks in
-.Pa $HOME
-that point into a dotfiles directory but would not be listed by
-.Xr lsrc 1 .
-Typically such links are the result of deleting or renaming a dotfile.
-.Pp
-The
-.Nm
-program finds those links, lists them, and then asks once whether to
-remove the whole batch.
+This program removes the symlinks that
+.Xr rcup 1
+created and that no longer resolve.
+.
+See
+.Xr rcup 1 ,
+the
+.Sx DIRECTORY LAYOUT
+section, for details on the directory layout.
 .Pp
 By default,
 .Nm
-only searches within
-.Pa $HOME
-subdirectories that are managed by rcm--that is, those
+will print the list of broken symlinks, then prompt for a confirmation to remove
+them all at once. This behavior can be adjusted with the
+.Fl f
+and
+.Fl n
+flags.
+.Pp
+For performance,
+.Nm
+does not scan your entire home directory by default.
+It looks for broken symlinks first at the top level of
+.Pa ~ ,
+and then at any depth within each top-level subdirectory of
+.Pa ~
 that
 .Xr rcup 1
-would create and that
-.Xr rcdn 1
-would remove.
-If an entire subdirectory is deleted from a dotfiles directory, pass
+could create across all tags and hosts. (The configured hostname and tags are
+ignored because a broken link might be the result of changing tags or renaming a
+host.) Thus, deleting or renaming the source of one of these top-level
+directories, such as
+.Pa tag-foo/bar/ ,
+will leave behind broken symlinks that
+.Nm
+will not see by default. In this case, pass
 .Fl a
-to broaden the scan to include all of
-.Pa $HOME ;
-otherwise the stale links pointing into the deleted directory will not be
-detected.
+to broaden the scan to all of
+.Pa ~ .
 .Pp
 When a link is removed and it was the last entry in its directory, that
 directory is also removed.
 .Pp
 .Bl -tag -width "-d DIR"
 .It Fl a
-search all of
-.Pa $HOME
-rather than only the directories implied by the dotfiles repository layout.
+scan all of
+.Pa ~
+rather than only the subdirectories that
+.Xr rcup 1
+could create.
 .It Fl d Ar DIR
 remove links pointing into
 .Ar DIR

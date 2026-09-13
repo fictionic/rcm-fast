@@ -256,47 +256,36 @@ macOS users should see the
 section for more details.
 .
 .Sh BROKEN SYMLINKS
-The rcm suite works from the files that your dotfiles directories hold
-now. If you remove or rename one of those files,
+The rcm suite works from the files that your dotfiles directories currently
+contain. If you remove or rename one of those files,
 .Xr rcup 1
-installs a symlink for the new name. The symlink for the old name stays
-in your home directory, and it is now broken.
+installs a symlink for the new name, and the symlink for the old name stays in
+your home directory, pointing at nothing.
 .Pp
-.Xr rcdn 1
-removes the symlinks for the files that are in your dotfiles
-directories, so it does not remove these. Use
-.Xr rcgc 1
-for this. It lists the broken symlinks that it finds, then asks once to
-remove them all. If the removal makes a directory empty, it removes that
-directory too.
+To find and remove these leftover broken symlinks, use
+.Xr rcgc 1 .
+It lists the broken symlinks that it finds, then asks once to
+remove them all.
 .Pp
 .Dl rcgc
 .Pp
 Use the
 .Fl f
-option to remove the symlinks without a question, or the
-.Fl n
-option to list them only.
+option to remove the symlinks without asking for confirmation.
 .Pp
-.Dl rcgc -n
+.Dl rcgc -f
 .Pp
 Only symlinks that point into one of your dotfiles directories are
-removed. A symlink that still resolves, one that points elsewhere, or
-one that a different program made stays as it is.
+removed.
 .Pp
 By default,
 .Xr rcgc 1
-searches the directories that
-.Xr rcup 1
-installs into, which it calculates from the layout of your dotfiles
-directories. A directory that you removed from a dotfiles directory is
-not in that list: if
-.Pa config/
-is no longer there, nothing points to
-.Pa ~/.config .
+does not search your whole home directory, so it can miss some broken links.
 Use the
 .Fl a
-option for these, and after a new checkout.
+option to search all of it. See
+.Xr rcgc 1
+for where it looks by default.
 .Pp
 .Dl rcgc -a
 .
