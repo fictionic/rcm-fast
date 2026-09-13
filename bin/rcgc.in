@@ -52,6 +52,11 @@ derive_roots() {
 
         name="${entry##*/}"
 
+        # skip hooks, tag- and host- directories at the root
+        if [ "$layer" = "$dotfiles_dir" ] && is_metafile "$name"; then
+          continue
+        fi
+
         if is_excluded "$name" "$undotted_globs" "$never_undotted_globs"; then
           dest="$DEST_DIR/$name"
         else

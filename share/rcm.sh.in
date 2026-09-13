@@ -68,6 +68,13 @@ is_nested() {
   echo "$1" | sed "s|$DEST_DIR/||" | grep '/' >/dev/null
 }
 
+is_metafile() {
+  case "$1" in
+    host-*|tag-*|hooks) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # eval echo expands a DOTFILES_DIRS entry: ~, $variables and command
 # substitution all apply. a relative result becomes absolute against $2, which
 # defaults to the current directory

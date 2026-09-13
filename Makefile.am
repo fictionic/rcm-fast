@@ -61,6 +61,7 @@ TESTS = \
 	test/rcgc-stale.t \
 	test/rcgc-ownership.t \
 	test/rcgc-force.t \
+	test/rcgc-metafiles.t \
 	test/rcgc-roots.t \
 	test/rcgc-all.t \
 	test/rcgc-tags.t \

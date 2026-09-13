@@ -154,13 +154,6 @@ handle_file() {
   fi
 }
 
-is_metafile() {
-  case "$1" in
-    host-*|tag-*|hooks) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
 show_help() {
   local exit_code=${1:-0}
 
