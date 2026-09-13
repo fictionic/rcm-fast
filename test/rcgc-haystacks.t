@@ -26,7 +26,7 @@ Give the repo a local/ entry and ~/.local comes into scope
   stale: */.local/state/orphan -> */.dotfiles/local/state/gone (glob)
   2 stale link(s)
 
-A repo entry whose destination does not exist contributes no root
+A repo entry whose destination does not exist contributes no haystack
 
   $ mkdir .dotfiles/nowhere
 

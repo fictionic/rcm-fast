@@ -27,7 +27,7 @@ resolve_dotfiles_dirs() {
   echo "$resolved"
 }
 
-derive_roots() {
+derive_haystacks() {
   local dotfiles_dir
   local undotted_globs
   local never_undotted_globs
@@ -35,11 +35,11 @@ derive_roots() {
   local entry
   local name
   local dest
-  local roots=
+  local haystacks=
   local seen=" "
 
   for dotfiles_dir in $DOTFILES_DIRS_RESOLVED; do
-    # the globs lsrc(1) derives for this directory, so a root is dotted the
+    # the globs lsrc(1) derives for this directory, so a haystack is dotted the
     # way rcup(1) dotted it
     undotted_globs="$(dotfiles_dir_excludes "$dotfiles_dir" "$UNDOTTED")"
     never_undotted_globs="$(dotfiles_dir_excludes "$dotfiles_dir" "$NEVER_UNDOTTED")"
@@ -52,7 +52,7 @@ derive_roots() {
 
         name="${entry##*/}"
 
-        # skip hooks, tag- and host- directories at the root
+        # skip root-level hooks, tag- and host- directories
         if [ "$layer" = "$dotfiles_dir" ] && is_metafile "$name"; then
           continue
         fi
@@ -68,7 +68,7 @@ derive_roots() {
         case "$seen" in
           *" $dest "*) ;;
           *)
-            roots=$(append_variable "$roots" "$(encode "$dest")")
+            haystacks=$(append_variable "$haystacks" "$(encode "$dest")")
             seen="$seen$dest "
             ;;
         esac
@@ -76,7 +76,7 @@ derive_roots() {
     done
   done
 
-  echo "$roots"
+  echo "$haystacks"
 }
 
 is_managed_target() {
@@ -115,7 +115,7 @@ is_stale() {
 
 scan() {
   local dotfiles_dir
-  local root
+  local haystack
 
   if [ "$SCAN_ALL" -eq 1 ]; then
     # in -a mode, we scan the whole DEST_DIR, filtering out all DOTFILES_DIRS
@@ -128,15 +128,14 @@ scan() {
 
     find "$DEST_DIR" -xdev "$@" -type l -print 2>/dev/null
   else
-    # normal mode: scan for common dotfiles at the top level of DEST_DIR, then
-    # scan within the destinations contained within each tag- and host- ROOT.
+    # normal mode: scan the top level of DEST_DIR, then scan each haystack
     find "$DEST_DIR" -xdev -maxdepth 1 -type l -print 2>/dev/null
 
-    if [ -n "$ROOTS" ]; then
+    if [ -n "$HAYSTACKS" ]; then
       set --
 
-      for root in $ROOTS; do
-        set -- "$@" "$(decode "$root")"
+      for haystack in $HAYSTACKS; do
+        set -- "$@" "$(decode "$haystack")"
       done
 
       find "$@" -xdev -type l -print 2>/dev/null
@@ -147,7 +146,7 @@ scan() {
 }
 
 announce_scope() {
-  local root
+  local haystack
 
   if [ "$SCAN_ALL" -eq 1 ]; then
     $VERBOSE "scanning all of $DEST_DIR"
@@ -156,8 +155,8 @@ announce_scope() {
 
   $VERBOSE "scanning $DEST_DIR at the top level"
 
-  for root in $ROOTS; do
-    $VERBOSE "scanning $(decode "$root")"
+  for haystack in $HAYSTACKS; do
+    $VERBOSE "scanning $(decode "$haystack")"
   done
 }
 
@@ -208,7 +207,7 @@ $DEBUG "UNDOTTED: $UNDOTTED"
 $DEBUG "NEVER_UNDOTTED: $NEVER_UNDOTTED"
 
 DOTFILES_DIRS_RESOLVED=$(resolve_dotfiles_dirs)
-ROOTS=$(derive_roots)
+HAYSTACKS=$(derive_haystacks)
 
 announce_scope
 

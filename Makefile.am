@@ -62,7 +62,7 @@ TESTS = \
 	test/rcgc-ownership.t \
 	test/rcgc-force.t \
 	test/rcgc-metafiles.t \
-	test/rcgc-roots.t \
+	test/rcgc-haystacks.t \
 	test/rcgc-all.t \
 	test/rcgc-tags.t \
 	test/rcgc-dotfiles-dirs.t \
