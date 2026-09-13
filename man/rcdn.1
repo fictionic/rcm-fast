@@ -1,4 +1,4 @@
-.Dd August 15, 2026
+.Dd September 13, 2026
 .Dt RCDN 1
 .Os
 .Sh NAME
@@ -35,6 +35,13 @@ is, that directory is removed. If a rc file is not a symlink but is
 listed in
 .Va COPY_ALWAYS
 the file is removed.
+.Pp
+If removing a file leaves its directory empty, that directory is removed too,
+and so is each empty directory above it. (But a directory at the top of
+.Pa ~ ,
+such as
+.Pa ~/.config ,
+is always retained.)
 .Pp
 The
 .Nm

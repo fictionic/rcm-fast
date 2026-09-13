@@ -75,6 +75,22 @@ is_metafile() {
   esac
 }
 
+# remove the given directory and each empty directory above it, stopping short
+# of DEST_DIR's own children (such as ~/.config and ~/Library)
+prune_empty_dirs() {
+  local dir="$1"
+  local rel
+
+  case "$dir" in
+    "$DEST_DIR"/*/*) ;;
+    *) return 0 ;;
+  esac
+
+  rel="${dir#"$DEST_DIR"/}"
+
+  (cd -- "$DEST_DIR/${rel%%/*}" && rmdir -p -- "${rel#*/}" 2>/dev/null) || true
+}
+
 # eval echo expands a DOTFILES_DIRS entry: ~, $variables and command
 # substitution all apply. a relative result becomes absolute against $2, which
 # defaults to the current directory

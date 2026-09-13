@@ -48,6 +48,7 @@ TESTS = \
 	test/rcup-symlink-dirs.t \
 	test/rcup-symlink-existing.t \
 	test/rcup-usage.t \
+	test/rcdn-rmdir.t \
 	test/rcdn-hooks.t \
 	test/rcdn-hooks-failure.t \
 	test/rcdn-hooks-run-in-situ.t \

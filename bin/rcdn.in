@@ -14,7 +14,7 @@ remove_link() {
     $VERBOSE "not a symlink, skipping: $original"
   elif [ -L "$dest" -o "x$sigil" = "xX" ]; then
     rm_v -rf "$dest"
-    rmdir -p "$(dirname "$original")" 2>/dev/null
+    prune_empty_dirs "$(dirname "$original")"
   else
     remove_link "$(dirname "$dest")" "$original"
   fi
