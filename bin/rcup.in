@@ -62,7 +62,7 @@ handle_file_cp() {
     printf "%s " "overwrite \$2? [yN]"
     read overwrite
     case "\$overwrite" in
-      y)
+      [Yy]*)
         \$RM -rf "\$2"
         ;;
       *)
@@ -80,7 +80,7 @@ handle_file_ln() {
     printf "%s " "overwrite \$2? [yN]"
     read overwrite
     case "\$overwrite" in
-      y)
+      [Yy]*)
         \$RM -rf "\$2"
         ;;
       *)
@@ -167,11 +167,11 @@ handle_file() {
       $PROMPT "overwrite ${dest}? [ynaq]"
       read overwrite
       case "$overwrite" in
-        a) REPLACE_ALL=1
+        [Aa]*) REPLACE_ALL=1
            replace_file "$src" "$dest" "$sigil"
            ;;
-        y) replace_file "$src" "$dest" "$sigil" ;;
-        q) exit 1 ;;
+        [Yy]*) replace_file "$src" "$dest" "$sigil" ;;
+        [Qq]*) exit 1 ;;
         *) $VERBOSE "skipping $dest" ;;
       esac
     fi
