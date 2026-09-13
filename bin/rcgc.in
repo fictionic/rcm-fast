@@ -254,7 +254,7 @@ case "$MODE" in
     read -r answer
 
     case "$answer" in
-      y) ;;
+      [Yy]*) ;;
       *) exit 0 ;;
     esac
     ;;
