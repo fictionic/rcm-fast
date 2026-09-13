@@ -43,3 +43,11 @@ Nothing remains to collect
 
   $ rcgc
   clean
+
+-q silences the report but not the removal
+
+  $ rm .dotfiles/config/shared/kept
+
+  $ rcgc -qf
+
+  $ refute "the link should be gone" -h "$HOME/.config/shared/kept"
