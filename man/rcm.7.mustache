@@ -254,6 +254,45 @@ flag.
 macOS users should see the
 .Sx BUGS
 section for more details.
+.Ss SHARING ONE RCRC AND EXTENDING IT PER HOST
+Making the whole
+.Pa .rcrc
+host-specific means every host repeats the settings that all of them share. The
+.Xr rcrc 5
+format is POSIX shell, so a shared file can read a host-specific one instead.
+Keep
+.Pa rcrc
+at the top of your dotfiles directory and end it with this line:
+.Bd -literal -offset indent
+[ -r "$HOME/.rcrc.host" ] && . "$HOME/.rcrc.host"
+.Ed
+.Pp
+Then give each host an
+.Pa rcrc.host
+file in its own
+.Pa host-
+directory.
+.Xr rcup 1
+installs it as
+.Pa ~/.rcrc.host
+like any other dotfile.
+.Pp
+Use this for a setting that only one machine can act on: the
+.Va TAGS
+that suit it, or an
+.Va UNDOTTED
+entry such as
+.Qq Library
+that only macOS needs.
+.Pp
+The host file is read last, so a variable named in both takes the host's value.
+To add to a shared list rather than replace it, name the variable on both sides:
+.Pp
+.Dl UNDOTTED="$UNDOTTED Library"
+.Pp
+On a new machine neither file is installed yet, so the first
+.Xr rcup 1
+runs with the default settings and installs both. The second reads them.
 .
 .Sh BROKEN SYMLINKS
 The rcm suite works from the files that your dotfiles directories currently
