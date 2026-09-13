@@ -27,6 +27,10 @@ resolve_dotfiles_dirs() {
   echo "$resolved"
 }
 
+is_physical_dir() {
+  [ -d "$1" ] && [ ! -L "$1" ]
+}
+
 derive_haystacks() {
   local dotfiles_dir
   local undotted_globs
@@ -63,7 +67,8 @@ derive_haystacks() {
           dest="$DEST_DIR/.$name"
         fi
 
-        [ -d "$dest" ] || continue
+        # skip SYMLINK_DIRS symlinks
+        is_physical_dir "$dest" || continue
 
         case "$seen" in
           *" $dest "*) ;;

@@ -63,6 +63,7 @@ TESTS = \
 	test/rcgc-force.t \
 	test/rcgc-metafiles.t \
 	test/rcgc-haystacks.t \
+	test/rcgc-symlink-dest.t \
 	test/rcgc-all.t \
 	test/rcgc-tags.t \
 	test/rcgc-dotfiles-dirs.t \
