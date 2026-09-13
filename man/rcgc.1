@@ -91,6 +91,15 @@ Because
 cannot create a link whose target path contains a newline, or a link with a
 relative target path, these links are always left alone even if they are broken,
 as they are assumed to have been created manually.
+.Pp
+Dotfiles that were copied rather than symlinked into their destination,
+because of
+.Va COPY_ALWAYS ,
+must be deleted by hand when their source is removed. Neither
+.Nm
+nor
+.Xr rcdn 1
+will remove them.
 .Sh ENVIRONMENT
 .Bl -tag -width ".Ev RCRC"
 .It Ev RCRC
