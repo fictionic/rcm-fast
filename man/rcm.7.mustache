@@ -1,4 +1,4 @@
-.Dd August 15, 2026
+.Dd September 13, 2026
 .Dt RCM 7
 .Os
 .Sh NAME
@@ -99,10 +99,15 @@ directory. Use an exclusion pattern to ignore these.
 A less common situation is for all the filenames in your dotfiles
 directory to be prefixed with a period. These files are skipped by the
 rcm suite, and thus would result in nothing happening. The only option
-in this case is to rename all the files, for example by using a shell
-command like the following.
-.Pp
-.Dl find ~/.dotfiles -name '.*' -exec echo mv {} `echo {} | sed 's/\.//'` \;
+in this case is to rename the files, apart from anything that should stay
+dotted, for example by using a shell command like the following. Remove the
+.Li echo
+once the output looks right.
+.Bd -literal -offset indent
+cd ~/.dotfiles && for f in .[!.]*; do
+    [ "$f" = .git ] || echo mv "$f" "${f#.}"
+done
+.Ed
 .Pp
 Note that this will break any existing symlinks. Those can be safely
 removed using the
