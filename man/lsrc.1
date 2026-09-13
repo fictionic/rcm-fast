@@ -1,4 +1,4 @@
-.Dd August 15, 2026
+.Dd September 13, 2026
 .Dt LSRC 1
 .Os
 .Sh NAME
@@ -59,15 +59,18 @@ respectively.
 show usage instructions.
 .
 .It Fl I Ar excl_pat
-include the files that match the given pattern. This is applied after
-any
-.Fl x
-options. It uses the same pattern language as
+include the files that match the given pattern, if they would otherwise be
+excluded by an exclude pattern. This uses the same pattern language as
 .Fl x ;
 more details are in the
 .Sx EXCLUDE PATTERN
-section. Note that you may have to quote the exclude pattern so the
-shell does not evaluate the glob.
+section. Note that you may have to quote the exclude pattern so the shell does
+not evaluate the glob. This replaces the
+value of
+.Va INCLUDES
+set in your
+.Xr rcrc 5
+configuration. This option can be repeated.
 .
 .It Fl S Ar excl_pat
 symlink the directories that match the given pattern. See
@@ -120,10 +123,19 @@ increase verbosity. This can be repeated for extra verbosity.
 decrease verbosity
 .
 .It Fl x Ar excl_pat
-exclude the files that match the given pattern. See
+exclude the files that match the given pattern. An excluded file is not
+listed, so
+.Xr rcup 1
+does not install it and
+.Xr rcdn 1
+does not remove it. See
 .Sx EXCLUDE PATTERN
-for more details. This option can be repeated. Quote the pattern if it
-contains a valid shell glob.
+for more details. This option can be repeated. Quote the pattern if it contains
+a valid shell glob. This replaces the value of
+.Va EXCLUDES
+set in your
+.Xr rcrc 5
+configuration.
 .
 .It Ar files ...
 only list the specified file(s)
@@ -136,6 +148,14 @@ omitted, defaults to
 which is a special token that matches any dotfiles directory. The file
 glob is relative to the dotfiles directory, ignoring meta directories. A
 colon combines them.
+.Pp
+A pattern is tested against the path of the file relative to the dotfiles
+directory, and then against the name of the file alone. The pattern
+.Li config
+therefore matches both
+.Pa config
+and
+.Pa ssh/config .
 .
 .Pp
 For example, to ignore all emacs-related items from the

@@ -1,4 +1,4 @@
-.Dd August 15, 2026
+.Dd September 13, 2026
 .Dt RCRC 5
 .Os
 .Sh NAME
@@ -53,6 +53,14 @@ the hostname for this computer. This is normally computed using the
 command, but this command is non-standard and can prove unreliable. The
 .Va HOSTNAME
 variable forces a known hostname.
+.
+.It Va INCLUDES
+a space-separated list of exclude patterns, applied after
+.Va EXCLUDES .
+A file that matches one of these patterns is listed even if
+.Va EXCLUDES
+matches it too. On its own this variable does nothing.
+.
 .It Va TAGS
 the default tags.
 .
@@ -100,6 +108,7 @@ under the section
 .Dl DOTFILES_DIRS="/home/mike/.dotfiles /usr/share/dotfiles"
 .Dl EXCLUDES="irbrc *:*emacs* dotfiles:python*"
 .Dl HOSTNAME="eggplant"
+.Dl INCLUDES="dotfiles:pythonrc"
 .Dl TAGS="freebsd development email git laptop gmail notmuch"
 .Dl SYMLINK_DIRS="zprezto texmf"
 .Dl MK_DIRS="config"
