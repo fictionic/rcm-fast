@@ -1,6 +1,12 @@
-VERSION="@PACKAGE_VERSION@"
-
 #set -x
+
+: ${RCRC:=$HOME/.rcrc}
+
+if [ -r "$RCRC" ]; then
+  . "$RCRC"
+fi
+
+VERSION="@PACKAGE_VERSION@"
 
 DEBUG=:
 DEST_DIR="$HOME"
@@ -307,9 +313,3 @@ append_variable() {
     echo "$1 $2"
   fi
 }
-
-: ${RCRC:=$HOME/.rcrc}
-
-if [ -r "$RCRC" ]; then
-  . "$RCRC"
-fi
