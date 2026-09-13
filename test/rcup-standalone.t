@@ -40,7 +40,7 @@
       printf "%s " "overwrite $2? [yN]"
       read overwrite
       case "$overwrite" in
-        y)
+        [Yy]*)
           $RM -rf "$2"
           ;;
         *)
@@ -58,7 +58,7 @@
       printf "%s " "overwrite $2? [yN]"
       read overwrite
       case "$overwrite" in
-        y)
+        [Yy]*)
           $RM -rf "$2"
           ;;
         *)

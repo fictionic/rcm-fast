@@ -42,6 +42,7 @@ TESTS = \
 	test/rcrc-scope.t \
 	test/rcrc.t \
 	test/rcup-link-files.t \
+	test/rcup-overwrite.t \
 	test/rcup-hostname.t \
 	test/rcup-standalone.t \
 	test/rcup-symlink-dirs.t \
@@ -60,6 +61,7 @@ TESTS = \
 	test/rcgc-usage.t \
 	test/rcgc-stale.t \
 	test/rcgc-ownership.t \
+	test/rcgc-prompt.t \
 	test/rcgc-force.t \
 	test/rcgc-metafiles.t \
 	test/rcgc-haystacks.t \
