@@ -39,6 +39,7 @@ derive_haystacks() {
   local entry
   local name
   local dest
+  local encoded
   local haystacks=
   local seen=" "
 
@@ -70,11 +71,14 @@ derive_haystacks() {
         # skip SYMLINK_DIRS symlinks
         is_physical_dir "$dest" || continue
 
+        # translate spaces to BEL, so we can use space as a delimiter
+        encoded="$(encode "$dest")"
+
         case "$seen" in
-          *" $dest "*) ;;
+          *" $encoded "*) ;;
           *)
-            haystacks=$(append_variable "$haystacks" "$(encode "$dest")")
-            seen="$seen$dest "
+            haystacks=$(append_variable "$haystacks" "$encoded")
+            seen="$seen$encoded "
             ;;
         esac
       done

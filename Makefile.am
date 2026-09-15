@@ -67,6 +67,7 @@ TESTS = \
 	test/rcgc-rmdir.t \
 	test/rcgc-metafiles.t \
 	test/rcgc-haystacks.t \
+	test/rcgc-spaces.t \
 	test/rcgc-symlink-dest.t \
 	test/rcgc-all.t \
 	test/rcgc-tags.t \
