@@ -16,8 +16,8 @@ into a symlink given as a starting point.
 does not.
 
   $ rcgc -nv
-  scanning * at the top level (glob)
-  scanning */.local (glob)
+  scanning * (shallow)... (glob)
+  scanning */.local (deep)... (glob)
   stale: */.local/stale -> */.dotfiles/local/gone (glob)
   1 stale link(s)
 

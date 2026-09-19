@@ -19,6 +19,12 @@ Retiring a whole tree leaves its root underived. Nothing in the repo implies
   stale: */.config/nvim/init.lua -> */.dotfiles/config/nvim/init.lua (glob)
   1 stale link(s)
 
+$HOME is the whole scope under -a. No haystack is consulted, so no other
+directory is announced
+
+  $ rcgc -n -a -v 2>&1 | grep scanning
+  scanning * (deep)... (glob)
+
 Links inside the repo are pruned from the walk even under -a
 
   $ ln -s "$HOME/.dotfiles/gone" .dotfiles/internal

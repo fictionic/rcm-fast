@@ -158,14 +158,14 @@ announce_scope() {
   local haystack
 
   if [ "$SCAN_ALL" -eq 1 ]; then
-    $VERBOSE "scanning all of $DEST_DIR"
+    $VERBOSE "scanning $DEST_DIR (deep)..."
     return 0
   fi
 
-  $VERBOSE "scanning $DEST_DIR at the top level"
+  $VERBOSE "scanning $DEST_DIR (shallow)..."
 
   for haystack in $HAYSTACKS; do
-    $VERBOSE "scanning $(decode "$haystack")"
+    $VERBOSE "scanning $(decode "$haystack") (deep)..."
   done
 }
 

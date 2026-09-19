@@ -28,10 +28,10 @@ layer is read before the tag layers, so the longer name is recorded first
   $ rm .dotfiles/foo\ bar/a .dotfiles/tag-x/foo/b
 
   $ rcgc -nv 2>&1 | grep scanning
-  scanning * at the top level (glob)
-  scanning */.foo bar (glob)
-  scanning */.sub dir (glob)
-  scanning */.foo (glob)
+  scanning * (shallow)... (glob)
+  scanning */.foo bar (deep)... (glob)
+  scanning */.sub dir (deep)... (glob)
+  scanning */.foo (deep)... (glob)
 
   $ rcgc -n
   stale: */.foo bar/a -> */.dotfiles/foo bar/a (glob)
