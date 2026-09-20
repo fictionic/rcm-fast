@@ -1,4 +1,4 @@
-.Dd September 19, 2026
+.Dd September 20, 2026
 .Dt RCRC 5
 .Os
 .Sh NAME
@@ -134,3 +134,10 @@ and
 We only expand tilde inside
 .Va DOTFILES_DIRS
 and not inside any patterns.
+.Pp
+An item in a space-delimited list cannot itself contain a space. Thus, tag names
+and dotfiles directory names cannot contain spaces, and patterns must match
+spaces using wildcards: for example, match the directory
+.Ql Application Support
+with the pattern
+.Ql Application?Support .
