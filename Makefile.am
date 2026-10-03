@@ -68,6 +68,7 @@ TESTS = \
 	test/rcgc-metafiles.t \
 	test/rcgc-haystacks.t \
 	test/rcgc-spaces.t \
+	test/rcgc-shallow.t \
 	test/rcgc-symlink-dest.t \
 	test/rcgc-all.t \
 	test/rcgc-tags.t \

@@ -31,21 +31,104 @@ is_physical_dir() {
   [ -d "$1" ] && [ ! -L "$1" ]
 }
 
+# expand GC_SHALLOW_DIRS such that all ancestors of each path are also included:
+# if foo/bar/ is declared shallow, then this implies that foo/ must be shallow.
+expand_shallow_dirs() {
+  local glob
+  local prefix
+  local expanded=
+  local had_noglob
+
+  case "$-" in
+    *f*) had_noglob=1 ;;
+    *) had_noglob= ;;
+  esac
+
+  set -o noglob
+
+  for glob in $GC_SHALLOW_DIRS; do
+    prefix="$glob"
+
+    while [ "$prefix" != "${prefix%/*}" ]; do
+      expanded=$(append_variable "$expanded" "$prefix")
+      prefix="${prefix%/*}"
+    done
+
+    expanded=$(append_variable "$expanded" "$prefix")
+  done
+
+  [ -n "$had_noglob" ] || set +o noglob
+
+  echo "$expanded"
+}
+
+# record a new scan haystack, and whether it should be scanned deeply or
+# shallowly.
+add_haystack() {
+  local dest="$1"
+  local shallow="$2"
+
+  # a given haystack may be included by multiple roots. dedupe.
+  local encoded="$(encode "$dest")"
+  case "$SEEN_HAYSTACKS" in
+    *" $encoded "*) return 0 ;;
+  esac
+
+  SEEN_HAYSTACKS="$SEEN_HAYSTACKS$encoded "
+
+  if [ "$shallow" -eq 1 ]; then
+    SHALLOW_HAYSTACKS=$(append_variable "$SHALLOW_HAYSTACKS" "$encoded")
+  else
+    HAYSTACKS=$(append_variable "$HAYSTACKS" "$encoded")
+  fi
+}
+
+# each dotfile-containing subdir of a shallow haystack becomes a haystack of
+# its own.
+add_shallow_children() {
+  local entry="$1"
+  local haystack_path="$2"
+  local haystack_rel="$3"
+  local child
+  local child_name
+  local child_path
+  local child_rel
+
+  for child in "$entry"/*; do
+    [ -d "$child" ] || continue
+
+    child_name="${child##*/}"
+    child_path="$haystack_path/$child_name"
+    child_rel="$haystack_rel/$child_name"
+
+    # again, skip SYMLINK_DIRS symlinks
+    is_physical_dir "$child_path" || continue
+
+    if is_excluded "$child_rel" "$GC_SHALLOW_DIRS_EXPANDED" ""; then
+      add_haystack "$child_path" 1
+      add_shallow_children "$child" "$child_path" "$child_rel"
+    else
+      add_haystack "$child_path" 0
+    fi
+  done
+}
+
+# determine the scope of the scan: which haystacks will be scanned, and which
+# should be deep vs shallow.
 derive_haystacks() {
   local dotfiles_dir
   local undotted_globs
   local never_undotted_globs
   local layer
   local entry
-  local name
-  local dest
-  local encoded
-  local haystacks=
-  local seen=" "
+  local haystack_name
+  local haystack_path
+
+  HAYSTACKS=
+  SHALLOW_HAYSTACKS=
+  SEEN_HAYSTACKS=" "
 
   for dotfiles_dir in $DOTFILES_DIRS_RESOLVED; do
-    # the globs lsrc(1) derives for this directory, so a haystack is dotted the
-    # way rcup(1) dotted it
     undotted_globs="$(dotfiles_dir_excludes "$dotfiles_dir" "$UNDOTTED")"
     never_undotted_globs="$(dotfiles_dir_excludes "$dotfiles_dir" "$NEVER_UNDOTTED")"
 
@@ -55,37 +138,35 @@ derive_haystacks() {
       for entry in "$layer"/*; do
         [ -d "$entry" ] || continue
 
-        name="${entry##*/}"
+        haystack_name="${entry##*/}"
 
         # skip root-level hooks, tag- and host- directories
-        if [ "$layer" = "$dotfiles_dir" ] && is_metafile "$name"; then
+        if [ "$layer" = "$dotfiles_dir" ] && is_metafile "$haystack_name"; then
           continue
         fi
 
-        if is_excluded "$name" "$undotted_globs" "$never_undotted_globs"; then
-          dest="$DEST_DIR/$name"
+        if is_excluded "$haystack_name" "$undotted_globs" "$never_undotted_globs"; then
+          haystack_path="$DEST_DIR/$haystack_name"
         else
-          dest="$DEST_DIR/.$name"
+          haystack_path="$DEST_DIR/.$haystack_name"
         fi
 
         # skip SYMLINK_DIRS symlinks
-        is_physical_dir "$dest" || continue
+        is_physical_dir "$haystack_path" || continue
 
-        # translate spaces to BEL, so we can use space as a delimiter
-        encoded="$(encode "$dest")"
+        if ! is_excluded "$haystack_name" "$GC_SHALLOW_DIRS_EXPANDED" ""; then
+          # normal (deep) haystack
+          add_haystack "$haystack_path" 0
+          continue
+        fi
 
-        case "$seen" in
-          *" $encoded "*) ;;
-          *)
-            haystacks=$(append_variable "$haystacks" "$encoded")
-            seen="$seen$encoded "
-            ;;
-        esac
+        # shallow haystack
+        add_haystack "$haystack_path" 1
+
+        add_shallow_children "$entry" "$haystack_path" "$haystack_name"
       done
     done
   done
-
-  echo "$haystacks"
 }
 
 is_managed_target() {
@@ -127,26 +208,35 @@ scan() {
   local haystack
 
   if [ "$SCAN_ALL" -eq 1 ]; then
-    # in -a mode, we scan the whole DEST_DIR, filtering out all DOTFILES_DIRS
-    # (anything within an rcm-managed repo is its own business).
+    # scan-all mode: scan all of DEST_DIR, but exclude all DOTFILES_DIRS.
+    # (dotfiles dirs should not link into each other, so there _shouldn't_ be
+    # any broken symlinks pointing into other dotfiles dirs, but if there were,
+    # we still wouldn't want to delete them, because they're part of the user's
+    # rcm configuration.)
     set --
-
     for dotfiles_dir in $DOTFILES_DIRS_RESOLVED; do
       set -- "$@" -path "$dotfiles_dir" -prune -o
     done
-
     find "$DEST_DIR" -xdev "$@" -type l -print 2>/dev/null
   else
-    # normal mode: scan the top level of DEST_DIR, then scan each haystack
+    # normal mode: first, scan just the top level of DEST_DIR
     find "$DEST_DIR" -xdev -maxdepth 1 -type l -print 2>/dev/null
 
+    # then, scan only the top level of each shallow haystack
+    if [ -n "$SHALLOW_HAYSTACKS" ]; then
+      set --
+      for haystack in $SHALLOW_HAYSTACKS; do
+        set -- "$@" "$(decode "$haystack")"
+      done
+      find "$@" -xdev -maxdepth 1 -type l -print 2>/dev/null
+    fi
+
+    # then, scan all of each normal haystack
     if [ -n "$HAYSTACKS" ]; then
       set --
-
       for haystack in $HAYSTACKS; do
         set -- "$@" "$(decode "$haystack")"
       done
-
       find "$@" -xdev -type l -print 2>/dev/null
     fi
   fi
@@ -163,6 +253,10 @@ announce_scope() {
   fi
 
   $VERBOSE "scanning $DEST_DIR (shallow)..."
+
+  for haystack in $SHALLOW_HAYSTACKS; do
+    $VERBOSE "scanning $(decode "$haystack") (shallow)..."
+  done
 
   for haystack in $HAYSTACKS; do
     $VERBOSE "scanning $(decode "$haystack") (deep)..."
@@ -215,10 +309,16 @@ $DEBUG "UNDOTTED: $UNDOTTED"
 : ${NEVER_UNDOTTED:=""}
 $DEBUG "NEVER_UNDOTTED: $NEVER_UNDOTTED"
 
+: ${GC_SHALLOW_DIRS:=""}
+$DEBUG "GC_SHALLOW_DIRS: $GC_SHALLOW_DIRS"
+
+GC_SHALLOW_DIRS_EXPANDED=$(expand_shallow_dirs)
+$DEBUG "GC_SHALLOW_DIRS_EXPANDED: $GC_SHALLOW_DIRS_EXPANDED"
+
 DOTFILES_DIRS_RESOLVED=$(resolve_dotfiles_dirs)
 $DEBUG "DOTFILES_DIRS_RESOLVED: $DOTFILES_DIRS_RESOLVED"
 
-HAYSTACKS=$(derive_haystacks)
+derive_haystacks
 
 announce_scope
 
