@@ -1,5 +1,24 @@
 @PACKAGE@ (@PACKAGE_VERSION@) unstable; urgency=low
 
+  * Feature: GC_SHALLOW_DIRS, an rcrc variable that stops rcgc from deeply
+      scanning the directories it matches. See rcgc(1).
+  * Feature: rcgc removes each parent directory that its removals leave
+      empty, as rcdn does.
+  * Feature: the rcup and rcgc prompts accept any answer that starts with
+      the given letter, in either case.
+  * BUGFIX: an rcrc file no longer overwrites internal rcm variables and
+      functions.
+  * BUGFIX: rcdn no longer removes empty directories at the root of $HOME,
+      such as ~/.config.
+  * BUGFIX: rcgc no longer scans hooks, tag- or host- directories.
+  * BUGFIX: rcgc handles destination directories that contain spaces.
+  * Documentation: a tutorial for per-host dotfiles with rcrc.host, and
+      clearer descriptions of INCLUDES/EXCLUDES and the rcgc scan scope.
+
+ -- Dylan Forbes <dylandforbes@gmail.com>  Sat, 03 Oct 2026 12:35:20 -0700
+
+rcm-fast (2.1.0) unstable; urgency=low
+
   * Feature: rcgc, a new command that removes broken symlinks left behind by a
       deleted or renamed dotfile. It lists the symlinks it finds and asks
       once before it removes them. See rcgc(1).
