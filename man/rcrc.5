@@ -1,4 +1,4 @@
-.Dd September 20, 2026
+.Dd October 3, 2026
 .Dt RCRC 5
 .Os
 .Sh NAME
@@ -29,7 +29,7 @@ and
 programs.
 .Pp
 It supports these variables:
-.Bl -tag -width "NEVER_UNDOTTED"
+.Bl -tag -width "GC_SHALLOW_DIRS"
 .It Va COPY_ALWAYS
 always copy files that match the listed globs, never symlink them.
 .
@@ -46,6 +46,19 @@ explained in detail in
 .Xr lsrc 1
 under the section
 .Sx EXCLUDE PATTERN .
+.
+.It Va GC_SHALLOW_DIRS
+a space-separated list of globs, used only by
+.Xr rcgc 1 .
+Each glob caps how deeply
+.Xr rcgc 1
+searches one directory. See
+.Xr rcgc 1 ,
+section
+.Sx SCAN SCOPE
+for details. Note that these are plain globs rather than exclude patterns,
+because they are matched against external files rather than the contents of
+dotfiles directories.
 .
 .It Va HOSTNAME
 the hostname for this computer. This is normally computed using the
@@ -107,6 +120,7 @@ under the section
 .Dl COPY_ALWAYS="*"
 .Dl DOTFILES_DIRS="/home/mike/.dotfiles /usr/share/dotfiles"
 .Dl EXCLUDES="irbrc *:*emacs* dotfiles:python*"
+.Dl GC_SHALLOW_DIRS="Library"
 .Dl HOSTNAME="eggplant"
 .Dl INCLUDES="dotfiles:pythonrc"
 .Dl TAGS="freebsd development email git laptop gmail notmuch"

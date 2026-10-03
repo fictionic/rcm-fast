@@ -1,4 +1,4 @@
-.Dd September 13, 2026
+.Dd October 3, 2026
 .Dt RCGC 1
 .Os
 .Sh NAME
@@ -9,15 +9,9 @@
 .Op Fl afhnqVv
 .Op Fl d Ar dir
 .Sh DESCRIPTION
-This program removes the symlinks that
+This program removes symlinks created by
 .Xr rcup 1
-created and that no longer resolve.
-.
-See
-.Xr rcup 1 ,
-the
-.Sx DIRECTORY LAYOUT
-section, for details on the directory layout.
+that no longer resolve.
 .Pp
 By default,
 .Nm
@@ -30,24 +24,10 @@ flags.
 .Pp
 For performance,
 .Nm
-does not scan your entire home directory by default.
-It looks for broken symlinks first at the top level of
-.Pa ~ ,
-and then at any depth within each top-level subdirectory of
+does not scan all of
 .Pa ~
-that
-.Xr rcup 1
-could create across all tags and hosts. (The configured hostname and tags are
-ignored because a broken link might be the result of changing tags or renaming a
-host.) Thus, deleting or renaming the source of one of these top-level
-directories, such as
-.Pa tag-foo/bar/ ,
-will leave behind broken symlinks that
-.Nm
-will not see by default. In this case, pass
-.Fl a
-to broaden the scan to all of
-.Pa ~ .
+by default. See
+.Sx SCAN SCOPE .
 .Pp
 If any empty directories are left over after removing broken symlinks, they are
 also removed. (But a directory at the top of
@@ -62,7 +42,8 @@ scan all of
 .Pa ~
 rather than only the subdirectories that
 .Xr rcup 1
-could create.
+could create. See
+.Sx SCAN SCOPE .
 .It Fl d Ar DIR
 remove links pointing into
 .Ar DIR
@@ -89,6 +70,161 @@ increase verbosity. This can be repeated for extra verbosity.
 show the version number.
 .El
 .
+.Sh SCAN SCOPE
+In principle, a stale symlink could be anywhere in the home directory.
+However, walking all of
+.Pa ~
+on each invocation of
+.Nm
+would be, in general, very inefficient. Home directories can be large, and
+dotfiles are usually only kept in a few places. Thus, by default,
+.Nm
+uses a heuristic to optimize performance at the cost of correctness, leading to
+false-negatives (under-reported garbage) in certain cases. To disable the
+heuristic and scan all of
+.Pa ~ ,
+pass
+.Fl a .
+.Ss HEURISTIC
+.Nm
+assumes two things about where dotfiles are located: (1) the set of top-level
+subdirectories of
+.Pa ~
+that might have ever contained dotfiles is fairly static, and (2) everything in
+these directories is a dotfile. For example, on most systems, all dotfiles
+either sit directly within
+.Pa ~
+(e.g.
+.Pa ~/.bashrc ) ,
+or within
+.Pa ~/.config ,
+which only contains dotfiles.
+Under these assumptions, the only recursive directory scans that
+.Nm
+needs to perform in order to find stale symlinks are for those top-level
+subdirectories of
+.Pa ~
+that are
+.Qq implied
+by the layout of the dotfiles directories as they currently
+exist. A directory is
+.Qq implied
+when, under any possible values of
+.Va TAGS
+and hostname,
+.Xr rcup 1
+would create that directory if it did not already exist (the actual configured
+hostname and tags are ignored by
+.Nm
+because a broken link might be the result of changing this configuration for the
+current host).
+.Pp
+This heuristic produces false negatives when assumption (1) is false--that is,
+when one of these top-level directories is no longer
+.Qq implied
+by the set of rcm dotfiles directories, either because it has been deleted or
+renamed, or because the host's tags or hostname has changed in the right (wrong)
+way. For example, if the
+.Qq destination
+directory
+.Pa ~/bar
+is only implied by the
+.Qq source
+directory
+.Pa tag-foo/bar/ ,
+then deleting the source directory (or removing the
+.Qq foo
+tag from the configuration) will leave behind broken symlinks that
+.Nm
+will not see unless the heuristic is disabled with
+.Fl a .
+.Ss EXCLUDING LARGE DIRECTORIES
+When assumption (2) is false, the heuristic will perform deep scans of
+directories that mostly do not contain dotfiles, which hurts performance. For
+example, on macOS,
+.Pa ~/Library
+holds thousands of system- and application-owned files, but
+.Pa ~/Library/LaunchAgents
+can contain launchd plist files that might be managed with rcm. Scanning all of
+.Pa ~/Library
+on each
+.Nm
+invocation would be wasteful, as most directories within it will never contain
+rcm-created symlinks.
+.Pp
+In such a situation, it would be more performant to give these large top-level
+directories the same treatment as
+.Pa ~ :
+scan shallowly, then scan any implied subdirectories deeply.
+.Nm
+cannot know on its own which directories warrant this type of scan, but it can
+be informed via an rcrc setting: use
+.Va GC_SHALLOW_DIRS
+to declare which dotfile-containing directories should be scanned shallowly
+rather than deeply. In the macOS example, declaring
+.Dl GC_SHALLOW_DIRS="Library"
+will tell
+.Nm
+to scan
+.Pa ~/Library
+shallowly, preventing wasteful scanning; but
+.Pa ~/Library/LaunchAgents ,
+because it is implied by the dotfiles directories, will still be scanned deeply.
+This can of course lead to false negatives just like before: if
+.Pa ~/Library/LaunchAgents
+stops being implied, it will stop being scanned. Thus, this feature should only
+be used on directories where an assumption similar to (1) applies.
+.Pp
+An implied child can itself be a large directory of mostly non-dotfiles, so one
+level of shallow scanning is not always enough. For example, one might have a
+dotfile within
+.Pa ~/Library/Application Support/Code ,
+but scanning all of
+.Pa ~/Library/Application Support
+would be wasteful. In this case, declaring
+.Dl GC_SHALLOW_DIRS="Library/Application?Support"
+will tell
+.Nm
+to scan both
+.Pa ~/Library
+and
+.Pa ~/Library/Application Support
+shallowly, and
+.Pa ~/Library/Application Support/Code
+will be scanned deeply. That is, all ancestors of a shallowly-scanned directory
+are also scanned shallowly (up to
+.Pa ~ ) .
+(A
+.Qq \&?
+must be used to match a space; see section
+.Sx BUGS
+in
+.Xr rcrc 5 . )
+.Pp
+The items passed to
+.Va GC_SHALLOW_DIRS
+are interpreted as globs to be matched against the contents of the dotfiles
+directories. They are not paths (e.g., it would be incorrect to pass
+.Pa ~/Library ) ,
+and they are not matched against the contents of
+.Pa ~
+(thus a leading dot must be omitted when naming a hidden directory).
+because
+.Nm
+cleans broken symlinks for all dotfiles directories, these globs cannot be
+scoped to a particular dotfiles directory--that is, they are not the
+.Qq exclude patterns
+that other rcm variables use. Note that the glob
+.Qq *
+character will match against
+.Qq /
+characters, so it should be used with care (this is also true of exclude
+patterns).
+.Pp
+.Va GC_SHALLOW_DIRS
+is ignored when
+.Fl a
+is passed.
 .Sh IMPLEMENTATION NOTES
 Because
 .Xr rcup 1
